@@ -1,0 +1,1426 @@
+from fastapi import FastAPI,HTTPException,Depends,status
+from fastapi.responses import JSONResponse,HTMLResponse
+from pydantic import BaseModel,validator
+from typing import Annotated
+import models
+from uuid import uuid4, UUID
+from datetime import date, datetime, time, timedelta
+from database import engine,SessionLocal
+from sqlalchemy.orm import Session
+from typing import List
+import httpx
+from pydantic.dataclasses import dataclass
+from fastapi.middleware.cors import CORSMiddleware
+
+app=FastAPI(title="Fleetrez B2C" ,description="For serving better quality of API without lagging")
+models.Base.metadata.create_all(bind=engine)
+
+origins = [
+    "*",
+    "/*",
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost",
+    "http://localhost:3000",
+    "https://localhost",
+    "https://localhost:8000",
+    "http://127.0.0.1:5500/",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# class PostBase(BaseModel):
+#     title:str
+#     content: str
+#     user_id: int
+#     class Config:
+#         orm_mode=True
+
+# class UserBase(BaseModel):
+#     name: str
+#     class Config:
+#         orm_mode=True
+
+        
+date_str = "2023-10-11T15:30:00"
+class location_searchBase(BaseModel):
+    pick_up_locations: str
+    drop_off_locations: str
+    pick_up_date_time: datetime
+    drop_off_date_time: datetime
+    promo_code:str
+    driver_age:int
+
+ 
+@validator("pick_up_date_time", "drop_off_date_time", pre=True, always=True)
+def parse_datetime_fields(cls, value):
+        try:
+            # Define your custom datetime format here
+            custom_format = "%Y-%m-%d %H:%M"
+            return datetime.strptime(value, custom_format)
+        except (ValueError, TypeError):
+            raise ValueError("Invalid datetime format")
+        
+class categoryVehicle(BaseModel):
+    name:str
+
+class ManagebookingBase(BaseModel):
+    email:str
+    booking_reference:str
+    
+class categoryBase(BaseModel):
+    id:UUID = uuid4()
+    name:str
+
+class AcrissBase(BaseModel):
+    id:UUID = uuid4()
+    name:str
+    class Config:
+        orm_mode=True
+
+
+class locationBase(BaseModel):
+    id:UUID = uuid4()
+    location_name:str
+    days:UUID = uuid4()
+    class Config:
+        orm_mode=True
+
+class modifysearchBase(BaseModel):
+    pick_up_locations: str
+    drop_off_locations: str
+    pick_up_date_time: datetime
+    drop_off_date_time: datetime
+    vehicle_type:list
+    driver_age:int
+    paymentType:list
+
+
+class vehicleBase(BaseModel):
+    id:UUID = uuid4()
+    name:str
+    vehicle_type:str
+    location_name:str
+    excess_amount:float
+    local_fee:int
+    price:float
+    image:str
+    rating:float
+    payment_method:str
+    rating_count:int
+    acriss_id:UUID = uuid4()
+    image:str
+    attribute_id:UUID = uuid4()
+    location_id:UUID = uuid4()
+    vehicle_group_id:UUID = uuid4()
+    inclusion_id:UUID = uuid4()
+    category_id:UUID = uuid4()
+    class Config:
+        orm_mode=True
+
+
+class locationBase(BaseModel):
+    id:UUID = uuid4()
+    location_name:str
+    image:str
+    days:UUID = uuid4()
+    class Config:
+        orm_mode=True
+
+class inclusionBase(BaseModel):
+    id:UUID = uuid4()
+    name:str
+
+
+class vehicleGroupBase(BaseModel):
+    id:UUID = uuid4()
+    name:str
+    class Config:
+        orm_mode=True
+
+
+class t_cBase(BaseModel):
+    id:UUID = uuid4()
+    title:str
+    description:str |None=None
+    class Config:
+        orm_mode=True
+
+class rental_t_cBase(BaseModel):
+    id:UUID = uuid4()
+    title:str
+    description:str |None=None
+    class Config:
+        orm_mode=True
+
+
+class attributeBase(BaseModel):
+    id:UUID = uuid4()
+    attribute_name:str
+    class Config:
+        orm_mode=True
+
+class insuranceBase(BaseModel):
+    id:UUID = uuid4()
+    name:str
+    amount:float
+    type:str
+    description:str
+    class Config:
+        orm_mode=True
+
+class extraBase(BaseModel):
+    id:UUID = uuid4()
+    name:str
+    amount:float
+    type:str
+    image:str
+    quantity:str
+    class Config:
+        orm_mode=True
+
+class booking_vehicleBase(BaseModel):
+    id:UUID = uuid4()
+    name:str
+    booking_ref:str
+    pickup_Date:datetime
+    dropoff_Date:datetime
+    vehicle_type:str
+    excess_amount:float
+    fee:float
+    rating:float
+    rating_count:int
+    image:str
+    total:int
+    car_rental:int
+    Insurance:int
+    tax:int
+    paid:int
+    dueCheck_out:int
+    acriss_id:UUID = uuid4()
+    driver_detail_id:UUID = uuid4()
+    t_cid:UUID = uuid4()
+    inclusionid:UUID = uuid4()
+    locationid:UUID = uuid4()
+    class Config:
+        orm_mode=True
+
+class driver_detailBase(BaseModel):
+    id:UUID = uuid4()
+    first_name:str
+    last_name:str
+    title:str
+    email:str
+    phone_code:str
+    phone_number:int
+    driver_age:int
+    address:str
+    city:str
+    postal_code:str
+    country:str
+    remark:str
+    insurance_id:UUID = uuid4()
+    extra_id:UUID = uuid4()
+    class Config:
+        orm_mode=True
+
+class days_hoursBase(BaseModel):
+    id:UUID = uuid4()
+    opening_hour:time
+    closing_hour:time
+    class Config:
+        orm_mode=True
+
+class daysBase(BaseModel):
+    id:UUID = uuid4()
+    day_hour_id: UUID = uuid4()
+    weekday:str
+    is_closed:bool
+    class Config:
+        orm_mode=True
+
+class vehicle_categoryBase(BaseModel):
+    id:UUID = uuid4()
+    name:str
+    class Config:
+        orm_mode=True
+
+class cancellationBase(BaseModel):
+    id:UUID = uuid4()
+    reason:str
+    charges:int
+    class Config:
+        orm_mode=True
+
+# @dataclass
+# class modifiedData(BaseModel):
+#     list2:List[inclusionBase]
+
+def get_db():
+    db= SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+db_dependency = Annotated[Session,Depends(get_db)]
+
+# #create USers
+# @app.post("/users/",status_code=status.HTTP_201_CREATED)
+# async def create_user(user: UserBase, db: db_dependency):
+#     db_user = models.user(**user.dict())
+#     db.add(db_user)
+#     db.commit()
+#     return db_user
+
+#locationSearch
+@app.post("/locationSearch")
+async def location_search(location: location_searchBase,db: Session = Depends(get_db)):
+    query = db.query(models.vehicleClass)
+    if location:
+        query = query.filter(models.vehicleClass.location_name == location.pick_up_locations)
+        locationdata= query.all()
+        
+    if locationdata is None:
+        raise HTTPException(status_code=404, detail="location not found")
+    # vehicledata=db.query(models.locationClass).all()
+    vehicledataList = []
+
+    for vehicle in locationdata:
+        async with httpx.AsyncClient() as client:
+            response = await client.get("http://127.0.0.1:8000/attribute/all")
+            response1 = await client.get("http://127.0.0.1:8000/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
+            response2= await client.get("http://127.0.0.1:8000/inclusion/all")
+            # response3=await client.get("http://127.0.0.1:8000/locationById/1")
+            attribute_data = response.json()
+            acriss_data=response1.json()
+            inclusion_data=response2.json()
+            # location_data=response3.json()
+            
+        vehicledataList.append({
+            "id": vehicle.id,
+            "name": vehicle.name,
+            "image": vehicle.image,
+            "price": vehicle.price,
+            "location":vehicle.location_name,
+            "vehicle_type": vehicle.vehicle_type,
+            "local_fee": vehicle.local_fee,
+            "rating": vehicle.rating,
+            "rating_count": vehicle.rating_count,
+            "payment_method": vehicle.payment_method,
+            "excess_amount": vehicle.excess_amount,
+            "vehicle_group": vehicle.vehicle_group_id,
+            # "location": location_data,
+            "inclusion": inclusion_data,
+            "attributes": attribute_data
+        })
+    
+    return {'vehicledata':vehicledataList}
+
+#locationSearch
+@app.post("/modifylocationSearch")
+async def location_search(location: modifysearchBase,db: Session = Depends(get_db)):
+    query = db.query(models.locationClass)
+    query1 = db.query(models.vehicleClass)
+    # if location:
+    #     query = query.filter(models.locationClass.location_name == location.pick_up_locations)
+    #     locationdata = query.first()
+    if location:
+        query1= query1.filter(models.vehicleClass.payment_method == location.paymentType)
+        data=query1.all()
+
+    if location:
+        query1=query1.filter(models.vehicleClass.location_name == location.pick_up_locations)
+        data=query1.all()
+        vehicless=data
+        
+    if vehicless is None:
+        raise HTTPException(status_code=404, detail="location ot found")
+    if location:
+        query1= query1.filter(models.vehicleClass.payment_method == location.paymentType)
+        data=query1.all()
+        vehicless=data
+
+    if location:
+        query1= query1.filter(models.vehicleClass.vehicle_type == location.vehicle_type)
+        data=query1.all()
+        vehicless=data
+    if vehicless is None:
+        raise HTTPException(status_code=404, detail="vehicle not found")
+    # vehicledata=db.query(models.locationClass).all()
+
+    
+
+    vehicledataList = []
+    async with httpx.AsyncClient() as client:
+            response = await client.get("http://127.0.0.1:8000/vehicleSearched")
+            
+            vehicleData = response.json()
+            
+            
+            vehicledataList.append({
+            "vehicles": vehicleData
+        })
+    # locationName=locationdata.location_name
+    # print(locationdata.location_name)
+    return {'vehicledata':vehicledataList}
+
+
+@app.post("/categoryVehicle")
+async def vehicleCategory(cvehicle: categoryVehicle,db:Session=Depends(get_db)):
+    query = db.query(models.vehicleClass)
+    if cvehicle:
+        query = query.filter(models.vehicleClass.vehicle_type == cvehicle.name)
+    vehicle_data= query.all()
+    if vehicle_data is None:
+        raise HTTPException(status_code=404, detail="vehicle cannot found for this category")
+    vehicledataList = []
+    for categoryvehicles in vehicle_data:
+        vehicledataList.append({
+            "Vehicle_name":categoryvehicles.name,
+        })
+    
+    return {'vehicledata':vehicledataList}
+
+
+
+@app.post("/managebooking")
+async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(get_db)):
+    query = db.query(models.booking_vehicleClass)
+    if managebooking:
+        query = query.filter(models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
+    bookingVehicledata= query.first()
+    if bookingVehicledata is None:
+        raise HTTPException(status_code=404, detail="bookings  not found")
+    vehicledataList = []
+    locations=[]
+    async with httpx.AsyncClient() as client:
+        response = await client.get("http://127.0.0.1:8000/rental_t_c/all")
+        response1=await client.get("http://127.0.0.1:8000/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
+        locationss=await client.get("http://127.0.0.1:8000/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
+        response2=await client.get("http://127.0.0.1:8000/inclusion/all")
+        response3=await client.get("http://127.0.0.1:8000/day_hoursById/c45aa0b6-2f9a-4ea8-bd12-a3c144bfa1d6")
+        response4=await client.get("http://127.0.0.1:8000/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
+        t_cdata = response.json()
+        inclusion_data=response2.json()
+        location1_data=response1.json()
+        location2_data=locationss.json()
+        driver_data=response4.json()
+        locations.append({
+                "location1":location1_data,
+                "location2":location2_data
+            })
+        vehicledataList.append({
+            "id":bookingVehicledata.id,
+            "name":bookingVehicledata.name,
+            "booking_ref":bookingVehicledata.booking_ref,
+            "pickupDate":bookingVehicledata.pickup_Date,
+            "dropoffDate":bookingVehicledata.dropoff_Date,
+            "vehicle_type":bookingVehicledata.vehicle_type,
+            "excess_amount":bookingVehicledata.excess_amount,
+            "car_rental":bookingVehicledata.car_rental,
+            "extra":300,
+            "total":bookingVehicledata.total,
+            "Insurance":bookingVehicledata.Insurance,
+            "tax":bookingVehicledata.tax,
+            "paid":bookingVehicledata.paid,
+            "Due_at_Checkout":bookingVehicledata.dueCheck_out,
+            "Fee":bookingVehicledata.fee,
+            "Rating":bookingVehicledata.rating,
+            "Rating_count":bookingVehicledata.rating_count,
+            "image":bookingVehicledata.image,
+            "location": locations,
+            "inclusion": inclusion_data,
+            "Rental_t_c": t_cdata,
+            "driver_detail":driver_data
+        })
+    
+    return {'vehicledata':vehicledataList}
+                        
+
+
+
+# create acriss
+@app.post("/acriss",status_code=status.HTTP_201_CREATED,tags=["Acriss"])
+async def create_acriss(acriss: AcrissBase, db: db_dependency):
+    db_acriss = models.acrissClass(**acriss.dict())
+    db.add(db_acriss)
+    db.commit()
+    return acriss
+
+
+# #display vehicle by id
+@app.get("/acrissById/{acriss_id}",status_code=status.HTTP_200_OK,tags=["Acriss"])
+async def read_acriss(acriss_id:UUID, db:db_dependency):
+    acriss=db.query(models.acrissClass).filter(models.acrissClass.id==acriss_id).first()   
+    if acriss is None:
+        raise HTTPException(status_code=404, detail='acriss not found')
+    return {acriss}
+
+
+
+
+#show all acriss
+@app.get("/acriss/all",status_code=status.HTTP_200_OK,tags=["Acriss"])
+async def get_All(db: Session = Depends(get_db)):
+    acriss_data=db.query(models.acrissClass).all()
+    return {'status':'sucess', 'acriss':acriss_data}
+
+# @app.get("/acriss/{acriss_id}")
+# def get_acriss_with_booking_vehicle(acriss_id: int, db: Session = Depends(get_db)):
+#     acriss = db.query(models.acrissClass).filter(models.acrissClass.id == acriss_id).first()
+#     if acriss is None:
+#         raise HTTPException(status_code=404, detail="Acriss not found")
+#     return {"acriss": acriss.name, "booking_vehicles": acriss.booking_vehicle}
+
+# #show all acriss
+# @app.get("/vehicles/all",status_code=status.HTTP_200_OK,tags=["vehicle"])
+# async def get_All(db: Session = Depends(get_db)):
+#     vehicle_data=db.query(models.vehicleClass).all()
+#     for vehicle in vehicle_data:
+#         vehicle.acriss
+#     return vehicle.acriss
+
+
+
+#delete Acriss
+@app.delete("/acriss/{acriss_id}",status_code=status.HTTP_200_OK,tags=["Acriss"])
+async def delete_acriss(acriss_id:UUID ,db:db_dependency):
+    db_acriss=db.query(models.acrissClass).filter(models.acrissClass.id==acriss_id).first()
+    if db_acriss is None:
+        raise HTTPException(status_code=404 , detail="acriss was not founded")
+    db.delete(db_acriss)
+    db.commit()
+    return db_acriss
+
+#update acriss
+@app.put("/acriss/{acriss_id}",status_code=status.HTTP_200_OK,response_model=AcrissBase,tags=["Acriss"])
+async def update_acriss(acriss_id:int ,db:db_dependency,acriss:AcrissBase):
+    try:
+        db_acriss_update=db.query(models.acrissClass).filter(models.acrissClass.id==acriss_id).first()
+        db_acriss_update.name=acriss.name
+        db.add(db_acriss_update)
+        db.commit()
+        return db_acriss_update
+    except:
+        return HTTPException(status_code=404, detail="acriss not found")
+
+
+# create acriss
+@app.post("/inclusion",status_code=status.HTTP_201_CREATED,tags=["Inclusion"])
+async def create_insclusion(inclusion: inclusionBase, db: db_dependency):
+    db_inclusion = models.inclusionClass(**inclusion.dict())
+    db.add(db_inclusion)
+    db.commit()
+    return inclusion
+
+#show all acriss
+@app.get("/inclusion/all",status_code=status.HTTP_200_OK,tags=["Inclusion"])
+async def get_All(db: Session = Depends(get_db)):
+    inclusion_data=db.query(models.inclusionClass).all()
+    return {'insclusions':inclusion_data}
+
+# #display vehicle by id
+@app.get("/inclusionById/{inclusion_id}",status_code=status.HTTP_200_OK,tags=["Inclusion"])
+async def read_inclusion(inclusion_id:UUID, db:db_dependency):
+    insclusion=db.query(models.inclusionClass).filter(models.inclusionClass.id==inclusion_id).first()   
+    if insclusion is None:
+        raise HTTPException(status_code=404, detail='insclusion not found')
+    return {insclusion}
+
+
+# create vehicle
+@app.post("/vehicleInsert",status_code=status.HTTP_201_CREATED,tags=["vehicle"])
+async def create_vehicle(vehicle: vehicleBase, db: db_dependency):
+    db_vehicle = models.vehicleClass(**vehicle.dict())
+    db.add(db_vehicle)
+    db.commit()
+    return {'vehicles':vehicle}
+
+#show all vehicle
+@app.get("/vehicle/all",status_code=status.HTTP_200_OK,tags=["vehicle"])
+async def get_All(db: Session = Depends(get_db)):
+    vehicledata=db.query(models.vehicleClass).all()
+    return {'status':'sucess', 'vehicles':vehicledata}
+
+
+#show all vehicle
+@app.post("/vehicle",status_code=status.HTTP_200_OK,tags=["vehicle"])
+async def vehicleSearch(db: Session = Depends(get_db)):
+    vehicledata=db.query(models.vehicleClass).all()
+    return {'status':'sucess', 'vehicles':vehicledata}
+        
+
+#show all vehicle
+@app.get("/vehicleSearched",status_code=status.HTTP_200_OK,tags=["vehicle"])
+async def get_All(db: Session = Depends(get_db)):
+    vehicledata=db.query(models.vehicleClass).all()
+    vehicledataList = []
+    for vehicle in vehicledata:
+        async with httpx.AsyncClient() as client:
+            response = await client.get("http://127.0.0.1:8000/attribute/all")
+            response1 = await client.get("http://127.0.0.1:8000/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
+            response2= await client.get("http://127.0.0.1:8000/inclusion/all")
+            # response3=await client.get("http://127.0.0.1:8000/locationById/1")
+            attribute_data = response.json()
+            acriss_data=response1.json()
+            inclusion_data=response2.json()
+            # location_data=response3.json()
+            
+        vehicledataList.append({
+            "id": vehicle.id,
+            "name": vehicle.name,
+            "image": vehicle.image,
+            "price": vehicle.price,
+            "location":vehicle.location_name,
+            "vehicle_type": vehicle.vehicle_type,
+            "local_fee": vehicle.local_fee,
+            "rating": vehicle.rating,
+            "rating_count": vehicle.rating_count,
+            "payment_method": vehicle.payment_method,
+            "excess_amount": vehicle.excess_amount,
+            "vehicle_group": vehicle.vehicle_group_id,
+            "inclusion": inclusion_data,
+            "attributes": attribute_data
+        })
+    
+    return {'vehicledata':vehicledataList}
+
+
+#delete vehicle
+@app.delete("/vehicle/{vehicle_id}",status_code=status.HTTP_200_OK,tags=["vehicle"])
+async def delete_vehicle(vehcile_id:UUID ,db:db_dependency):
+    db_vehicle=db.query(models.vehicleClass).filter(models.vehicleClass.id==vehcile_id).first()
+    if db_vehicle is None:
+        raise HTTPException(status_code=404 , detail="vehcile was not founded")
+    db.delete(db_vehicle)
+    db.commit()
+    return db_vehicle
+
+# #display vehicle by id
+@app.get("/vehicleById/{vehicle_id}",status_code=status.HTTP_200_OK,tags=["vehicle"])
+async def read_vehicle(vehicle_id:UUID, db:db_dependency):
+    vehicle=db.query(models.vehicleClass).filter(models.vehicleClass.id==vehicle_id).first()   
+    if vehicle is None:
+        raise HTTPException(status_code=404, detail='vehicle not found')
+    return {"vehicle": vehicle}
+
+
+# #show all acriss
+@app.get("/vehicleById",status_code=status.HTTP_200_OK,tags=["vehicle"])
+async def read_vehicle(vehicle_id:UUID, db:db_dependency):
+    vehicle=db.query(models.vehicleClass).filter(models.vehicleClass.id==vehicle_id).first()   
+    if vehicle is None:
+        raise HTTPException(status_code=404, detail='vehicle not found')
+    return {"vehicle": vehicle}
+
+
+#update vehicle
+@app.put("/vehicle/{vehcile_id}",status_code=status.HTTP_200_OK,response_model=vehicleBase,tags=["vehicle"])
+async def update_vehicle(vehicle_id:UUID ,db:db_dependency,vehicle:vehicleBase):
+    try:
+        db_vehcile_update=db.query(models.vehicleClass).filter(models.vehicleClass.id==vehicle_id).first()
+        db_vehcile_update.id=vehicle.id
+        db_vehcile_update.name=vehicle.name
+        db_vehcile_update.vehicle_type=vehicle.vehicle_type
+        db_vehcile_update.excess_amount=vehicle.excess_amount
+        db_vehcile_update.local_fee=vehicle.local_fee
+        db_vehcile_update.price=vehicle.price
+        db_vehcile_update.image=vehicle.image
+        db_vehcile_update.rating=vehicle.rating
+        db_vehcile_update.payment_method=vehicle.payment_method
+        db_vehcile_update.rating_count=vehicle.rating_count
+        db.add(db_vehcile_update)
+        db.commit()
+        return db_vehcile_update
+    except:
+        return HTTPException(status_code=404, detail="vehicle can't update ")
+
+
+
+# create locations
+@app.post("/location",status_code=status.HTTP_201_CREATED,tags=["Locations"])
+async def create_location(location: locationBase, db: db_dependency):
+    db_location = models.locationClass(**location.dict())
+    db.add(db_location)
+    db.commit()
+    return location
+
+#show all loctaions
+@app.get("/locations",status_code=status.HTTP_200_OK)
+async def get_All(db: Session = Depends(get_db)):
+    locations_data=db.query(models.locationClass).all()
+    return {'locations':locations_data}
+
+# #display location by id
+@app.get("/locationById/{location_id}",status_code=status.HTTP_200_OK,tags=["Locations"])
+async def read_vehicle(location_id:UUID, db:db_dependency):
+    location=db.query(models.locationClass).filter(models.locationClass.id==location_id).first()   
+    if location is None:
+        raise HTTPException(status_code=404, detail='location not found')
+    return {location}
+
+# #display location with 
+@app.get("/locationByIdDays/{location_id}",status_code=status.HTTP_200_OK,tags=["Locations"])
+async def read_vehicle(location_id:UUID, db:db_dependency):
+    location=db.query(models.locationClass).filter(models.locationClass.id==location_id).first()
+    locationdataList = []
+    async with httpx.AsyncClient() as client:
+            response = await client.get("http://127.0.0.1:8000/day_hoursById/1")
+            response1 = await client.get("http://127.0.0.1:8000/daysById/1")
+            dayHours_data = response.json()
+            days_data=response1.json()
+            
+            locationdataList.append({
+            "id": location.id,
+            "name": location.location_name,
+            "day_hour": dayHours_data,
+            "days":days_data
+        })
+    
+    return {'Locations':locationdataList}
+
+#update locations
+@app.put("/location/{location_id}",status_code=status.HTTP_200_OK,response_model=locationBase,tags=["Locations"])
+async def update_location(location_id:UUID ,db:db_dependency,location:locationBase):
+    try:
+        db_location_update=db.query(models.locationClass).filter(models.locationClass.id==location_id).first()
+        db_location_update.location_name=location.location_name
+        db_location_update.days=location.days
+        db_location_update.image=location.image
+        db.add(db_location_update)
+        db.commit()
+        return db_location_update
+    except:
+        return HTTPException(status_code=404, detail="location not found")
+
+#delete location
+@app.delete("/location/{location_id}",status_code=status.HTTP_200_OK,tags=["Locations"])
+async def delete_location(location_id:UUID ,db:db_dependency):
+    db_location=db.query(models.locationClass).filter(models.locationClass.id==location_id).first()
+    if db_location is None:
+        raise HTTPException(status_code=404 , detail="location was not founded")
+    db.delete(db_location)
+    db.commit()
+    return db_location
+
+# create days_hours
+@app.post("/days_hours",status_code=status.HTTP_201_CREATED,tags=["Locations"])
+async def create_days_hours(day_hours: days_hoursBase, db: db_dependency):
+    db_days_hours = models.days_hoursClass(**day_hours.dict())
+    db.add(db_days_hours)
+    db.commit()
+    return day_hours
+
+#show all days_hours
+@app.get("/days_hours",status_code=status.HTTP_200_OK,tags=["Locations"])
+async def get_All(db: Session = Depends(get_db)):
+    days_hours_data=db.query(models.days_hoursClass).all()
+    return {'status':'sucess', 'days_hours':days_hours_data}
+
+
+# #display day_hours by id
+@app.get("/day_hoursById/{day_hours_id}",status_code=status.HTTP_200_OK,tags=["Locations"])
+async def read_day_hours(day_hours_id:UUID, db:db_dependency):
+    day_hours=db.query(models.days_hoursClass).filter(models.days_hoursClass.id==day_hours_id).first()   
+    if day_hours is None:
+        raise HTTPException(status_code=404, detail='day_hours not found')
+    return {"day_hours": day_hours}
+
+#update locations
+@app.put("/days_hours/{days_hours_id}",status_code=status.HTTP_200_OK,response_model=days_hoursBase,tags=["Locations"])
+async def update_days_hours(days_hours_id:UUID ,db:db_dependency,days_hours:days_hoursBase):
+    try:
+        db_days_hours_update=db.query(models.days_hoursClass).filter(models.days_hoursClass.id==days_hours_id).first()
+        db_days_hours_update.opening_hour=days_hours.opening_hour
+        db_days_hours_update.closing_hour=days_hours.closing_hour
+        db.add(db_days_hours_update)
+        db.commit()
+        return db_days_hours_update
+    except:
+        return HTTPException(status_code=404, detail="days_hours  not found")
+
+#delete location
+@app.delete("/days_hours/{days_hours_id}",status_code=status.HTTP_200_OK,tags=["Locations"])
+async def delete_days_hours(days_hours_id:UUID ,db:db_dependency):
+    db_days_hours=db.query(models.days_hoursClass).filter(models.days_hoursClass.id==days_hours_id).first()
+    if db_days_hours is None:
+        raise HTTPException(status_code=404 , detail="days_hours was not founded")
+    db.delete(db_days_hours)
+    db.commit()
+    return db_days_hours
+
+
+
+
+# create days
+@app.post("/days",status_code=status.HTTP_201_CREATED,tags=["Locations"])
+async def create_days(day: daysBase, db: db_dependency):
+    db_day = models.daysClass(**day.dict())
+    db.add(db_day)
+    db.commit()
+    return {'status':'sucess', 'booking_vehicles':day}
+
+
+#show all days
+@app.get("/days",status_code=status.HTTP_200_OK,tags=["Locations"])
+async def get_All(db: Session = Depends(get_db)):
+    days_data=db.query(models.daysClass).all()
+    return {'status':'sucess', 'day_Data':days_data}
+
+# #display days by id
+@app.get("/daysById/{days_id}",status_code=status.HTTP_200_OK,tags=["Locations"])
+async def read_days(days_id:UUID, db:db_dependency):
+    days=db.query(models.daysClass).filter(models.daysClass.id==days_id).first()   
+    if days is None:
+        raise HTTPException(status_code=404, detail='days not found')
+    return {"days": days}
+
+#update days
+@app.put("/days/{day_id}",status_code=status.HTTP_200_OK,response_model=daysBase,tags=["Locations"])
+async def update_days(day_id:UUID ,db:db_dependency,days:daysBase):
+    try:
+        db_days_update=db.query(models.daysClass).filter(models.daysClass.id==day_id).first()
+        db_days_update.weekday=days.weekday
+        db_days_update.is_closed=days.is_closed
+        db_days_update.day_hour_id=days.day_hour_id
+        db.add(db_days_update)
+        db.commit()
+        return db_days_update
+    except:
+        return HTTPException(status_code=404, detail="days not found")
+
+#delete days
+@app.delete("/days/{days_id}",status_code=status.HTTP_200_OK,tags=["Locations"])
+async def delete_days(days_id:UUID ,db:db_dependency):
+    db_days=db.query(models.daysClass).filter(models.daysClass.id==days_id).first()
+    if db_days is None:
+        raise HTTPException(status_code=404 , detail="days was not founded")
+    db.delete(db_days)
+    db.commit()
+    return db_days
+
+
+
+
+# create vehicle_group
+@app.post("/vehicleGroup",status_code=status.HTTP_201_CREATED,tags=["vehicle Group"])
+async def create_vehicleGroup(vehicleGroup: vehicleGroupBase, db: db_dependency):
+    db_vehicleGroup = models.vehicleGroupClass(**vehicleGroup.dict())
+    db.add(db_vehicleGroup)
+    db.commit()
+    return vehicleGroup
+
+#show all vehile_group
+@app.get("/vehicleGroup",status_code=status.HTTP_200_OK,tags=["vehicle Group"])
+async def get_All(db: Session = Depends(get_db)):
+    vehicle_group_data=db.query(models.vehicleGroupClass).all()
+    return {'status':'sucess', 'vehicle_groups':vehicle_group_data}
+
+# #display vehile_group by id
+@app.get("/vehile_groupById/{vehile_group_id}",status_code=status.HTTP_200_OK,tags=["vehicle Group"])
+async def read_vehile_group(vehile_group_id:UUID, db:db_dependency):
+    vehile_group=db.query(models.vehicleGroupClass).filter(models.vehicleGroupClass.id==vehile_group_id).first()   
+    if vehile_group is None:
+        raise HTTPException(status_code=404, detail='vehile_group not found')
+    return {"vehicle_group": vehile_group}
+
+
+#update vehicleGroup
+@app.put("/vehicleGroup/{vehicleGroup_id}",status_code=status.HTTP_200_OK,response_model=vehicleGroupBase,tags=["vehicle Group"])
+async def update_vehicleGroup(vehicleGroup_id:UUID ,db:db_dependency,vehicleGroup:vehicleGroupBase):
+    try:
+        db_vehicleGroup_update=db.query(models.vehicleGroupClass).filter(models.vehicleGroupClass.id==vehicleGroup_id).first()
+        db_vehicleGroup_update.name=vehicleGroup.name
+        db.add(db_vehicleGroup_update)
+        db.commit()
+        return db_vehicleGroup_update
+    except:
+        return HTTPException(status_code=404, detail="vehicleGroup not found")
+
+#delete vehicleGroup
+@app.delete("/vehicleGroup/{vehicleGroup_id}",status_code=status.HTTP_200_OK,tags=["vehicle Group"])
+async def delete_vehicleGroup(vehicleGroup_id:UUID ,db:db_dependency):
+    db_vehicleGroup=db.query(models.vehicleGroupClass).filter(models.vehicleGroupClass.id==vehicleGroup_id).first()
+    if db_vehicleGroup is None:
+        raise HTTPException(status_code=404 , detail="vehicleGroup was not founded")
+    db.delete(db_vehicleGroup)
+    db.commit()
+    return db_vehicleGroup
+
+
+
+# create t_c
+@app.post("/t_c",status_code=status.HTTP_201_CREATED,tags=["T & C"])
+async def create_t_c(t_c: t_cBase, db: db_dependency):
+    db_t_c = models.t_cClass(**t_c.dict())
+    db.add(db_t_c)
+    db.commit()
+    return t_c
+
+#show all t_c
+@app.get("/t_c/all",status_code=status.HTTP_200_OK,tags=["T & C"])
+async def get_All(db: Session = Depends(get_db)):
+    t_c_data=db.query(models.t_cClass).all()
+    return {'t_c':t_c_data}
+
+
+# #display t&c by id
+@app.get("/t&cById/{t_c_id}",status_code=status.HTTP_200_OK,tags=["T & C"])
+async def read_t_c(t_c_id:UUID, db:db_dependency):
+    t_c=db.query(models.t_cClass).filter(models.t_cClass.id==t_c_id).first()   
+    if t_c is None:
+        raise HTTPException(status_code=404, detail='t_c not found')
+    return {"t_c": t_c}
+
+#update t&c
+@app.put("/t_c/{t_c_id}",status_code=status.HTTP_200_OK,response_model=t_cBase,tags=["T & C"])
+async def update_t_c(t_c_id:UUID ,db:db_dependency,t_c:t_cBase):
+    try:
+        db_t_c_update=db.query(models.t_cClass).filter(models.t_cClass.id==t_c_id).first()
+        db_t_c_update.title=t_c.title
+        db_t_c_update.description=t_c.description
+        db.add(db_t_c_update)
+        db.commit()
+        return db_t_c_update
+    except:
+        return HTTPException(status_code=404, detail="t_c not found")
+
+#delete t&c
+@app.delete("/t_c/{t_c_id}",status_code=status.HTTP_200_OK,tags=["T & C"])
+async def delete_t_c(t_c_id:UUID ,db:db_dependency):
+    db_t_c=db.query(models.t_cClass).filter(models.t_cClass.id==t_c_id).first()
+    if db_t_c is None:
+        raise HTTPException(status_code=404 , detail="t_c was not founded")
+    db.delete(db_t_c)
+    db.commit()
+    return db_t_c
+
+# create attribute
+@app.post("/attribute",status_code=status.HTTP_201_CREATED,tags=["Attribute"])
+async def create_attribute(attribute: attributeBase, db: db_dependency):
+    db_attribute = models.attributeClass(**attribute.dict())
+    db.add(db_attribute)
+    db.commit()
+    return attribute
+
+#show all attribute
+@app.get("/attribute/all",status_code=status.HTTP_200_OK,tags=["Attribute"])
+async def get_All(db: Session = Depends(get_db)):
+    attribute_data=db.query(models.attributeClass).all()
+    return {'attributes':attribute_data}
+
+# #display attribute by id
+@app.get("/attributeId/{attribute_id}",status_code=status.HTTP_200_OK,tags=["Attribute"])
+async def readattribute(attribute_id:int, db:db_dependency):
+    attribute=db.query(models.attributeClass).filter(models.attributeClass.id==attribute_id).first()   
+    if attribute is None:
+        raise HTTPException(status_code=404, detail='attribute not found')
+    return {attribute}
+
+#update attribute
+@app.put("/attribute/{attribute_id}",status_code=status.HTTP_200_OK,response_model=attributeBase,tags=["Attribute"])
+async def update_attribute(attribute_id:int ,db:db_dependency,attribute:attributeBase):
+    try:
+        db_attribute_update=db.query(models.attributeClass).filter(models.attributeClass.id==attribute_id).first()
+        db_attribute_update.attribute_name=attribute.attribute_name
+        db.add(db_attribute_update)
+        db.commit()
+        return db_attribute_update
+    except:
+        return HTTPException(status_code=404, detail="t_c not found")
+
+#delete attribute
+@app.delete("/attribute/{attribute_id}",status_code=status.HTTP_200_OK,tags=["Attribute"])
+async def delete_attribute(attribute_id:int ,db:db_dependency):
+    db_attribute=db.query(models.attributeClass).filter(models.attributeClass.id==attribute_id).first()
+    if db_attribute is None:
+        raise HTTPException(status_code=404 , detail="attribute was not founded")
+    db.delete(db_attribute)
+    db.commit()
+    return db_attribute
+
+
+
+
+# create extra
+@app.post("/extra",status_code=status.HTTP_201_CREATED,tags=["Extra"])
+async def create_extra(extras: extraBase, db: db_dependency):
+    db_extra = models.extraClass(**extras.dict())
+    db.add(db_extra)
+    db.commit()
+    return {'extras':extras}
+
+#show all extra
+@app.get("/extra/all",status_code=status.HTTP_200_OK,tags=["Extra"])
+async def get_All(db: Session = Depends(get_db)):
+    extras_data=db.query(models.extraClass).all()
+    return {"extra":extras_data}
+
+# #display extra by id
+@app.get("/extraId/{extra_id}",status_code=status.HTTP_200_OK,tags=["Extra"])
+async def readextra(extra_id:int, db:db_dependency):
+    extra=db.query(models.extraClass).filter(models.extraClass.id==extra_id).first()   
+    if extra is None:
+        raise HTTPException(status_code=404, detail='extra not found')
+    return {extra}
+
+
+#update extra
+@app.put("/extra/{extra_id}",status_code=status.HTTP_200_OK,response_model=extraBase,tags=["Extra"])
+async def update_extra(extra_id:int ,db:db_dependency,extra:extraBase):
+    try:
+        db_extra_update=db.query(models.extraClass).filter(models.extraClass.id==extra_id).first()
+        db_extra_update.name=extra.name
+        db_extra_update.type=extra.type
+        db_extra_update.quantity=extra.quantity
+        db_extra_update.image=extra.image
+        db_extra_update.amount=extra.amount
+        db.add(db_extra_update)
+        db.commit()
+        return db_extra_update
+    except:
+        return HTTPException(status_code=404, detail="t_c not found")
+
+#delete EXTRA
+@app.delete("/extra/{extra_id}",status_code=status.HTTP_200_OK,tags=["Extra"])
+async def delete_extra(extra_id:int ,db:db_dependency):
+    db_extra=db.query(models.extraClass).filter(models.extraClass.id==extra_id).first()
+    if db_extra is None:
+        raise HTTPException(status_code=404 , detail="extra was not founded")
+    db.delete(db_extra)
+    db.commit()
+    return db_extra
+
+
+
+# create insurance
+@app.post("/insurance",status_code=status.HTTP_201_CREATED,tags=["Insurances"])
+async def create_insurance(insurance: insuranceBase, db: db_dependency):
+    db_insurance = models.insuranceClass(**insurance.dict())
+    db.add(db_insurance)
+    db.commit()
+    return {'status':'sucess', 'insurances':insurance}
+
+#show all insurance
+@app.get("/insurance/all",status_code=status.HTTP_200_OK,tags=["Insurances"])
+async def get_All(db: Session = Depends(get_db)):
+    insurances_data=db.query(models.insuranceClass).all()
+    return {'status':'sucess', 'insurances':insurances_data}
+
+# #display insurance by id
+@app.get("/insuranceId/{insurance_id}",status_code=status.HTTP_200_OK,tags=["Insurances"])
+async def readinsurance(insurance_id:int, db:db_dependency):
+    insurance=db.query(models.insuranceClass).filter(models.insuranceClass.id==insurance_id).first()   
+    if insurance is None:
+        raise HTTPException(status_code=404, detail='insurance not found')
+    return {insurance}
+
+#update insurance
+@app.put("/insurance/{insurance_id}",status_code=status.HTTP_200_OK,response_model=insuranceBase,tags=["Insurances"])
+async def update_insurance(insurance_id:int ,db:db_dependency,insurance:insuranceBase):
+    try:
+        db_insurance_update=db.query(models.insuranceClass).filter(models.insuranceClass.id==insurance_id).first()
+        db_insurance_update.name=insurance.name
+        db_insurance_update.type=insurance.type
+        db_insurance_update.amount=insurance.amount
+        db_insurance_update.description=insurance.description
+        db.add(db_insurance_update)
+        db.commit()
+        return db_insurance_update
+    except:
+        return HTTPException(status_code=404, detail="insurance not found")
+
+#delete insurance
+@app.delete("/insurance/{insurance_id}",status_code=status.HTTP_200_OK,tags=["Insurances"])
+async def delete_insurance(insurance_id:int ,db:db_dependency):
+    db_insurance=db.query(models.insuranceClass).filter(models.insuranceClass.id==insurance_id).first()
+    if db_insurance is None:
+        raise HTTPException(status_code=404 , detail="insurance was not founded")
+    db.delete(db_insurance)
+    db.commit()
+    return db_insurance
+
+
+# create booking_vehicle
+@app.post("/booking_vehicle",status_code=status.HTTP_201_CREATED,tags=["booking vehicle"])
+async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_dependency):
+    db_booking_vehicle = models.booking_vehicleClass(**booking_vehicle.dict())
+    db.add(db_booking_vehicle)
+    db.commit()
+    return {'status':'sucess', 'booking_vehicles':booking_vehicle}
+
+#show all booking_vehicle
+@app.get("/booking_vehicle/all",status_code=status.HTTP_200_OK,tags=["booking vehicle"])
+async def get_All(db: Session = Depends(get_db)):
+    booking_vehicle_data=db.query(models.booking_vehicleClass).all()
+    return {'booking_vehicle':booking_vehicle_data}
+
+#show all booking_vehicle
+@app.get("/booking_conformation",status_code=status.HTTP_200_OK)
+async def get_conformation(db: Session = Depends(get_db)):
+    booking_vehicle_data=db.query(models.booking_vehicleClass).first()
+    tc=db.query(models.t_cClass).all()
+    vehicledataList = []
+    locations=[]
+    async with httpx.AsyncClient() as client:
+            response1= await client.get("http://127.0.0.1:8000/inclusion/all")
+            response2=await client.get("http://127.0.0.1:8000/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
+            locationss=await client.get("http://127.0.0.1:8000/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
+            response3=await client.get("http://127.0.0.1:8000/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
+            response4=await client.get("http://127.0.0.1:8000/t_c/all")
+            inclusion_data= response1.json()
+            location1_data=response2.json()
+            location2_data=locationss.json()
+            driver_detail_data=response3.json()
+            t_c_data=response4.json()
+            locations.append({
+                "loacation1":location1_data,
+                "location2":location2_data
+            })
+            vehicledataList.append({
+            "id": booking_vehicle_data.id,
+            "name": booking_vehicle_data.name,
+            "vehicle_type":booking_vehicle_data.vehicle_type,
+            "booking_reference" :booking_vehicle_data.booking_ref,
+            "pickupDate":booking_vehicle_data.pickup_Date,
+            "dropoffDate":booking_vehicle_data.dropoff_Date,
+            "excess_amount": booking_vehicle_data.excess_amount,
+            "car_rental":booking_vehicle_data.car_rental,
+            "Insurance":booking_vehicle_data.Insurance,
+            "tax":booking_vehicle_data.tax,
+            "paid":booking_vehicle_data.paid,
+            "Due_at_Checkout":booking_vehicle_data.dueCheck_out,
+            "Fee": booking_vehicle_data.fee,
+            "rating": booking_vehicle_data.rating,
+            "rating_count":booking_vehicle_data.rating_count,
+            "image":booking_vehicle_data.image,
+            "locations": locations,
+            "inclusion": inclusion_data,
+            "t_c": t_c_data,
+            "drivers":driver_detail_data
+        })
+            print(vehicledataList)
+    
+    return {'ConformationData':vehicledataList}
+    
+
+
+# #display booking_vehicle by id
+@app.get("/booking_vehicleId/{booking_vehicle}",status_code=status.HTTP_200_OK,tags=["booking vehicle"])
+async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
+    booking_vehicle=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()   
+    if booking_vehicle is None:
+        raise HTTPException(status_code=404, detail='booking_vehicle not found')
+    return {"booking_vehicle": booking_vehicle}
+
+
+#update booking_vehicle
+@app.put("/booking_vehicle/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase,tags=["booking vehicle"])
+async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:booking_vehicleBase):
+    try:
+        db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
+        db_booking_vehicle_update.name=booking_vehicle.name
+        db_booking_vehicle_update.booking_ref=booking_vehicle.booking_ref
+        db_booking_vehicle_update.vehicle_type=booking_vehicle.vehicle_type
+        db_booking_vehicle_update.excess_amount=booking_vehicle.excess_amount
+        db_booking_vehicle_update.fee=booking_vehicle.fee
+        db_booking_vehicle_update.rating=booking_vehicle.rating
+        db_booking_vehicle_update.rating_count=booking_vehicle.rating_count
+        db_booking_vehicle_update.image=booking_vehicle.image
+        db_booking_vehicle_update.acriss_id=booking_vehicle.acriss_id
+        db.add(db_booking_vehicle_update)
+        db.commit()
+        return db_booking_vehicle_update
+    except:
+        return HTTPException(status_code=404, detail="booking_vehicle not found")
+
+
+
+
+# @app.get("/acriss")
+# def get_acriss_with_booking_vehicle(db: Session = Depends(get_db)):
+#     acriss = db.query(models.acrissClass).all()
+#     return {"acriss": acriss, "booking_vehicles": acriss.booking_vehicle}
+
+
+#delete boking_vehicle
+@app.delete("/booking_vehicle/{booking_vehicle_id}",status_code=status.HTTP_200_OK,tags=["booking vehicle"])
+async def delete_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency):
+    db_booking_vehicle=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
+    if db_booking_vehicle is None:
+        raise HTTPException(status_code=404 , detail="booking_vehicle was not founded")
+    db.delete(db_booking_vehicle)
+    db.commit()
+    return booking_vehicle_id 
+
+
+# create driver_detail
+@app.post("/driver_Detail",status_code=status.HTTP_201_CREATED,tags=["Driver_Details"])
+async def create_driver_detai(driver: driver_detailBase, db: db_dependency):
+    db_driver = models.driverDetailClass(**driver.dict())
+    db.add(db_driver)
+    db.commit()
+    return {'status':'sucess', 'driver_details':driver}
+
+
+#show all days
+@app.get("/driver_detail",status_code=status.HTTP_200_OK,tags=["Driver_Details"])
+async def get_All(db: Session = Depends(get_db)):
+    driver_data=db.query(models.driverDetailClass).all()
+    vehicledataList = []
+    # base_url="http://127.0.0.1:8000/insuranceId/1"
+    # url1="http://127.0.0.1:8000/extra/all"
+    # for driver in driver_data:
+    #     async with httpx.AsyncClient() as client:
+    #         # url=base_url.format(driver.id)
+    #         response=await client.get(base_url)
+    #         response1=await client.get(url1)
+    #         insurance_data=response.json()
+    #         extra_data=response1.json()
+    # vehicledataList.append({
+            
+    
+    return {'status':'sucess', 'driver_data':driver_data}
+
+# #display driver_detail by id
+@app.get("/driver_detailId/{driver_detail_id}",status_code=status.HTTP_200_OK,tags=["Driver_Details"])
+async def read_driver_detail(driver_detail_id:UUID, db:db_dependency):
+    driver_detail=db.query(models.driverDetailClass).filter(models.driverDetailClass.id==driver_detail_id).first()   
+    if driver_detail is None:
+        raise HTTPException(status_code=404, detail='driver_detail not found')
+    return {"driver_detail": driver_detail}
+
+
+#update days
+@app.put("/driver_detail/{driver_detail_id}",status_code=status.HTTP_200_OK,response_model=driver_detailBase,tags=["Driver_Details"])
+async def update_days(driver_detail_id:UUID ,db:db_dependency,drivers_detail:driver_detailBase):
+    try:
+        db_driver_detail_update=db.query(models.driverDetailClass).filter(models.driverDetailClass.id==driver_detail_id).first()
+        db_driver_detail_update.first_name=drivers_detail.first_name
+        db_driver_detail_update.last_name=drivers_detail.last_name
+        db_driver_detail_update.title=drivers_detail.title
+        db_driver_detail_update.email=drivers_detail.email
+        db_driver_detail_update.phone_code=drivers_detail.phone_code
+        db_driver_detail_update.phone_number=drivers_detail.phone_number
+        db_driver_detail_update.driver_age=drivers_detail.driver_age
+        db_driver_detail_update.address=drivers_detail.address
+        db_driver_detail_update.city=drivers_detail.city
+        db_driver_detail_update.postal_code=drivers_detail.postal_code
+        db_driver_detail_update.country=drivers_detail.country
+        db_driver_detail_update.remark=drivers_detail.remark
+        
+
+        db.add(db_driver_detail_update)
+        db.commit()
+        return db_driver_detail_update
+    except:
+        return HTTPException(status_code=404, detail="driver_details not found")
+
+#delete driver_Detail
+@app.delete("/driver_detail/{driver_detail_id}",status_code=status.HTTP_200_OK,tags=["Driver_Details"])
+async def delete_driver_details(driver_detail_id:UUID ,db:db_dependency):
+    db_driver_details=db.query(models.driverDetailClass).filter(models.driverDetailClass.id==driver_detail_id).first()
+    if db_driver_details is None:
+        raise HTTPException(status_code=404 , detail="driverDetail was not founded")
+    db.delete(db_driver_details)
+    db.commit()
+    return driver_detail_id
+
+
+
+
+# create cancelalation_Charges
+@app.post("/cancellation",status_code=status.HTTP_201_CREATED)
+async def create_cancellation(cancellation: cancellationBase, db: db_dependency):
+    db_cancellation = models.cancellationClass(**cancellation.dict())
+    db.add(db_cancellation)
+    db.commit()
+    return cancellation
+
+
+# #display cancelalation_Charges by id
+@app.get("/cancellationById/{cancellation_id}",status_code=status.HTTP_200_OK)
+async def read_cancellation(cancellation_id: UUID, db:db_dependency):
+    cancellation=db.query(models.cancellationClass).filter(models.cancellationClass.id==cancellation_id).first()   
+    if cancellation is None:
+        raise HTTPException(status_code=404, detail='cancellation not found')
+    return {cancellation}
+
+
+
+#show all cancelalation_Charges
+@app.get("/cancellation/all",status_code=status.HTTP_200_OK,tags=["Cancellation"])
+async def get_All(db: Session = Depends(get_db)):
+    cancellation_data=db.query(models.cancellationClass).all()
+    return {'cancellations':cancellation_data}
+
+
+
+#delete cancelalation_Charges
+@app.delete("/cancellation/{cancellation_id}",status_code=status.HTTP_200_OK,tags=["Cancellation"])
+async def delete_cancellation(cancellation_id:UUID ,db:db_dependency):
+    db_cancellation=db.query(models.cancellationClass).filter(models.cancellationClass.id==cancellation_id).first()
+    if db_cancellation is None:
+        raise HTTPException(status_code=404 , detail="cancellation was not founded")
+    db.delete(db_cancellation)
+    db.commit()
+    return cancellation_id
+
+#update cancelalation_Charges
+@app.put("/cancellation/{cancellation_id}",status_code=status.HTTP_200_OK,response_model=cancellationBase,tags=["Cancellation"])
+async def update_cancellation(cancellation_id:UUID ,db:db_dependency,cancellation:cancellationBase):
+    try:
+        db_cancellation_update=db.query(models.cancellationClass).filter(models.cancellationClass.id==cancellation_id).first()
+        db_cancellation_update.reason=cancellation.reason
+        db_cancellation_update.charges=cancellation.charges
+        db.add(db_cancellation_update)
+        db.commit() 
+        return db_cancellation_update
+    except:
+        return HTTPException(status_code=404, detail="cancellation not found")
+
+
+
+#modify
+@app.put("/modifyBooking/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
+async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:booking_vehicleBase):
+    try:
+        db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
+        db_booking_vehicle_update.name=booking_vehicle.name
+        db_booking_vehicle_update.booking_ref=booking_vehicle.booking_ref
+        db_booking_vehicle_update.vehicle_type=booking_vehicle.vehicle_type
+        db_booking_vehicle_update.excess_amount=booking_vehicle.excess_amount
+        db_booking_vehicle_update.fee=booking_vehicle.fee
+        db_booking_vehicle_update.rating=booking_vehicle.rating
+        db_booking_vehicle_update.rating_count=booking_vehicle.rating_count
+        db_booking_vehicle_update.image=booking_vehicle.image
+        db_booking_vehicle_update.acriss_id=booking_vehicle.acriss_id
+        db.add(db_booking_vehicle_update)
+        db.commit()
+        name=db_booking_vehicle_update.name
+        booking_modify=[]
+        booking_modify.append({
+            "name":booking_vehicle.name
+        })
+        async with httpx.AsyncClient() as client:
+            response1= await client.get("http://127.0.0.1:8000/inclusionById/1")
+            inclusionData=response1.json()
+        print(booking_vehicle.name)
+        return db_booking_vehicle_update
+        
+    except:
+        async with httpx.AsyncClient() as client:
+            response1= await client.get("http://127.0.0.1:8000/inclusionById/1")
+        return HTTPException(status_code=404, detail="booking_vehicle not found")
+
+
+# #display booking_vehicle by id
+@app.get("/modifiedData/{booking_vehicle_id}",status_code=status.HTTP_200_OK)
+async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
+    booking_vehicle=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
+    async with httpx.AsyncClient() as client:
+            response1= await client.get("http://127.0.0.1:8000/inclusion/all")
+            response2= await client.get("http://127.0.0.1:8000/attribute/all")
+            response3=await client.get("http://127.0.0.1:8000/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
+            locationss=await client.get("http://127.0.0.1:8000/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
+            response4=await client.get("http://127.0.0.1:8000/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
+            response5=await client.get("http://127.0.0.1:8000/extra/all")
+            inclusionData=response1.json()
+            attributeData=response2.json()
+            location1_data=response3.json()
+            location2_data=locationss.json()
+            driverData=response4.json()
+            extras=response5.json()
+    modifiedData=[]
+    locations=[]
+    locations.append({
+            "location1":location1_data,
+            "location2":location2_data
+            })
+    # print(locations.json())
+    modifiedData.append({
+        "name":booking_vehicle.name,
+        "booking_ref":booking_vehicle.booking_ref,
+        "vehicle_type":booking_vehicle.vehicle_type,
+        "excess_amount":booking_vehicle.excess_amount,
+        "Fee":booking_vehicle.fee,
+        "Rating":booking_vehicle.rating,
+        "Rating_count":booking_vehicle.rating_count,
+        "image":booking_vehicle.image,
+        "attributes":attributeData,
+        "inclusion":inclusionData,
+        "locations":locations,
+        "extras":extras,
+        "driver":driverData
+        
+    })
+    if booking_vehicle is None:
+        raise HTTPException(status_code=404, detail='booking_vehicle not found')
+    return {"ModifiedData": modifiedData}
+
+
+#show all categories
+@app.get("/category/all",status_code=status.HTTP_200_OK)
+async def get_All(db: Session = Depends(get_db)):
+    category_data=db.query(models.categoryClass).all()
+    return {'categories':category_data}
+
+# create category
+@app.post("/category",status_code=status.HTTP_201_CREATED,tags=["Category"])
+async def create_category(category: categoryBase, db: db_dependency):
+    db_category = models.categoryClass(**category.dict())
+    db.add(db_category)
+    db.commit()
+    return category
+
+# create rental_t_c
+@app.post("/rental_t_c",status_code=status.HTTP_201_CREATED,tags=["Rental T & C"])
+async def create_rental_t_c(r_t_c: rental_t_cBase, db: db_dependency):
+    db_r_t_c = models.rental_t_cClass(**r_t_c.dict())
+    db.add(db_r_t_c)
+    db.commit()
+    return r_t_c
+
+#show all t_c
+@app.get("/rental_t_c/all",status_code=status.HTTP_200_OK,tags=["Rental T & C"])
+async def get_All(db: Session = Depends(get_db)):
+    r_t_c_data=db.query(models.rental_t_cClass).all()
+    return {'r_t_c':r_t_c_data}
+
+
+# #display t&c by id
+@app.get("/r_t&cById/{r_t_c_id}",status_code=status.HTTP_200_OK,tags=["Rental T & C"])
+async def read_t_c(r_t_c_id:UUID, db:db_dependency):
+    rental_t_c=db.query(models.rental_t_cClass).filter(models.rental_t_cClass.id==r_t_c_id).first()   
+    if rental_t_c is None:
+        raise HTTPException(status_code=404, detail='Rentl t_c not found')
+    return {"rental_t_c": rental_t_c}
+
+#update t&c
+@app.put("/rentalt_c/{r_t_c_id}",status_code=status.HTTP_200_OK,response_model=rental_t_cBase,tags=["Rental T & C"])
+async def update_rental_t_c(r_t_c_id:UUID ,db:db_dependency,r_t_c:rental_t_cBase):
+    try:
+        db_r_t_c_update=db.query(models.rental_t_cClass).filter(models.rental_t_cClass.id==r_t_c_id).first()
+        db_r_t_c_update.title=r_t_c.title
+        db_r_t_c_update.description=r_t_c.description
+        db.add(db_r_t_c_update)
+        db.commit()
+        return db_r_t_c_update
+    except:
+        return HTTPException(status_code=404, detail="t_c not found")
+
+#delete t&c
+@app.delete("/r_t_c/{r_t_c_id}",status_code=status.HTTP_200_OK,tags=["Rental T & C"])
+async def delete_r_t_c(r_t_c_id:UUID ,db:db_dependency):
+    db_r_t_c=db.query(models.rental_t_cClass).filter(models.rental_t_cClass.id==r_t_c_id).first()
+    if db_r_t_c is None:
+        raise HTTPException(status_code=404 , detail="r_t_c was not founded")
+    db.delete(db_r_t_c)
+    db.commit()
+    return db_r_t_c
