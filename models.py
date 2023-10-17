@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated
+from typing_extensions import Annotated
 from fastapi_utils.guid_type import GUID
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime,Text,TIME,BigInteger,Float
 from sqlalchemy.orm import relationship,Mapped
