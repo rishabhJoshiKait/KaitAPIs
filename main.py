@@ -1,13 +1,14 @@
 from fastapi import FastAPI,HTTPException,Depends,status
 from fastapi.responses import JSONResponse,HTMLResponse
 from pydantic import BaseModel,validator
-from typing import Annotated,List
+from typing_extensions import Annotated
 import models
 from uuid import uuid4, UUID
 from datetime import date, datetime, time, timedelta
 from database import engine,SessionLocal
 from sqlalchemy.orm import Session
 import httpx
+from typing import List
 from pydantic.dataclasses import dataclass
 from fastapi.middleware.cors import CORSMiddleware
 
