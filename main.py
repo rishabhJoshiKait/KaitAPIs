@@ -144,17 +144,18 @@ class vehicleGroupBase(BaseModel):
         orm_mode=True
 
 
+
 class t_cBase(BaseModel):
     id:UUID = uuid4()
     title:str
-    description:str |None=None
+    description:str
     class Config:
         orm_mode=True
 
 class rental_t_cBase(BaseModel):
     id:UUID = uuid4()
     title:str
-    description:str |None=None
+    description:str
     class Config:
         orm_mode=True
 
