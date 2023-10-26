@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing_extensions import Annotated
+
 from fastapi_utils.guid_type import GUID
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime,Text,TIME,BigInteger,Float
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime,Text,TIME,BigInteger,Float,func
 from sqlalchemy.orm import relationship,Mapped
 from database import Base
 from fastapi import Body
@@ -16,7 +17,7 @@ from sqlalchemy.ext.declarative import declarative_base
 class acrissClass(Base):
     __tablename__='acriss'
 
-    id= Column(GUID ,primary_key=True , index=True)
+    id= Column(String(40), primary_key=True, default=func.uuid(),Auto_increment=True)
     name=Column(String(255))
     booking_vehicle= relationship('booking_vehicleClass', back_populates='acriss')
     vehicle =  relationship("vehicleClass", back_populates='acriss')
@@ -25,7 +26,7 @@ class acrissClass(Base):
 class booking_vehicleClass(Base):
     __tablename__ = 'booking_vehicle'
     
-    id =Column(GUID, primary_key=True , index=True)
+    id =Column(String(40), primary_key=True, default=func.uuid())
     name = Column(String(255))
     booking_ref=Column(String(255))
     pickup_Date=Column(DateTime)
@@ -42,11 +43,11 @@ class booking_vehicleClass(Base):
     rating=Column(Float)
     image = Column(String(1024))
     total= Column(Integer)
-    acriss_id = Column(GUID,ForeignKey("acriss.id"))
-    t_cid=Column(GUID,ForeignKey("t_c.id"))
-    inclusionid=Column(GUID,ForeignKey("inclusion.id"))
-    locationid=Column(GUID,ForeignKey("location.id"))
-    driver_detail_id=Column(GUID,ForeignKey("driver_detail.id"))
+    acriss_id = Column(String(40), ForeignKey("acriss.id"),default=func.uuid())
+    t_cid=Column(String(40), ForeignKey("t_c.id"),default=func.uuid())
+    inclusionid=Column(String(40), ForeignKey("inclusion.id"),default=func.uuid())
+    locationid=Column(String(40), ForeignKey("location.id"),default=func.uuid())
+    driver_detail_id=Column(String(40), ForeignKey("driver_detail.id"),default=func.uuid())
     acriss =  relationship("acrissClass", back_populates='booking_vehicle')
     driver_detail= relationship("driverDetailClass")
     t_c=relationship("t_cClass")
@@ -57,7 +58,7 @@ class booking_vehicleClass(Base):
 class inclusionClass(Base):
     __tablename__= 'inclusion'
 
-    id=Column(GUID, primary_key=True, index=True)
+    id=Column(String(40), primary_key=True, default=func.uuid())
     name=Column(String(255))
     vehicle =  relationship("vehicleClass", back_populates='inclusion')
     booking_vehicle=relationship("booking_vehicleClass")
@@ -67,7 +68,7 @@ class inclusionClass(Base):
 class categoryClass(Base):
     __tablename__= 'category'
 
-    id= Column(GUID, primary_key=True,index=True)
+    id= Column(String(40), primary_key=True, default=func.uuid())
     name=Column(String(255))
     vehicle =  relationship("vehicleClass", back_populates='category')
 
@@ -75,7 +76,7 @@ class categoryClass(Base):
 class vehicleClass(Base):
     __tablename__ = 'vehicle'
     
-    id =Column(GUID, primary_key=True , index=True)
+    id =Column(String(40), primary_key=True, default=func.uuid())
     name = Column(String(255), unique=True)
     vehicle_type= Column(String(255))
     excess_amount = Column(Float)
@@ -86,14 +87,14 @@ class vehicleClass(Base):
     payment_method=Column(String(255))
     image = Column(String(1024))
     location_name = Column(String(255))
-    acriss_id = Column(GUID,ForeignKey("acriss.id"))
-    attribute_id=Column(GUID,ForeignKey("attribute.id"))
-    vehicle_group_id=Column(GUID,ForeignKey("vehicle_group.id"))
-    location_id=Column(GUID,ForeignKey("location.id"))
-    inclusion_id=Column(GUID,ForeignKey("inclusion.id"))
+    acriss_id = Column(String(40), ForeignKey("acriss.id"),default=func.uuid())
+    attribute_id=Column(String(40), ForeignKey("attribute.id"),default=func.uuid())
+    vehicle_group_id=Column(String(40), ForeignKey("vehicle_group.id"),default=func.uuid())
+    location_id=Column(String(40), ForeignKey("location.id"),default=func.uuid())
+    inclusion_id=Column(String(40), ForeignKey("inclusion.id"),default=func.uuid())
     acriss =  relationship("acrissClass")
     attribute= relationship("attributeClass")
-    category_id=Column(GUID,ForeignKey("category.id"))
+    category_id= Column(String(40), ForeignKey("category.id"),default=func.uuid())
     vehicle_group= relationship("vehicleGroupClass")
     location=relationship("locationClass", back_populates='vehicle')
     category=relationship("categoryClass", back_populates='vehicle')
@@ -103,10 +104,10 @@ class vehicleClass(Base):
 class locationClass(Base):
     __tablename__='location'
 
-    id= Column(GUID ,primary_key=True , index=True)
+    id= Column(String(40), primary_key=True, default=func.uuid())
     location_name=Column(String(255))
     image=Column(String(255))
-    days = Column(GUID,ForeignKey("days.id"))
+    days = Column(String(40), ForeignKey("days.id"),default=func.uuid())
     day_relation =  relationship("daysClass")
     vehicle =  relationship("vehicleClass", back_populates='location')
     booking_vehicle=relationship("booking_vehicleClass")
@@ -114,16 +115,16 @@ class locationClass(Base):
 class daysClass(Base):
     __tablename__='days'
 
-    id=Column(GUID,primary_key=True,index=True)
+    id=Column(String(40), primary_key=True, default=func.uuid())
     weekday=Column(String(255))
     is_closed=Column(Boolean,default=True)
-    day_hour_id = Column(GUID,ForeignKey("days_hours.id"))
+    day_hour_id = Column(String(40), ForeignKey("days_hours.id"),default=func.uuid())
     day_hours =  relationship("days_hoursClass")
 
 class days_hoursClass(Base):
     __tablename__='days_hours'
 
-    id=Column(GUID,primary_key=True,index=True)
+    id=Column(String(40), primary_key=True, default=func.uuid())
     opening_hour=Column(TIME)
     closing_hour=Column(TIME)
 
@@ -131,7 +132,7 @@ class days_hoursClass(Base):
 class vehicleGroupClass(Base):
     __tablename__='vehicle_group'
 
-    id= Column(GUID ,primary_key=True , index=True)
+    id= Column(String(40), primary_key=True, default=func.uuid())
     name=Column(String(255))
     vehicle =  relationship("vehicleClass", back_populates='vehicle_group')
 
@@ -139,7 +140,7 @@ class vehicleGroupClass(Base):
 class t_cClass(Base):
     __tablename__='t_c'
 
-    id=Column(GUID, primary_key=True , index=True)
+    id=Column(String(40), primary_key=True, default=func.uuid())
     title=Column(String(255))
     description=Column(Text)
     booking_vehicle=relationship("booking_vehicleClass")
@@ -148,7 +149,7 @@ class t_cClass(Base):
 class rental_t_cClass(Base):
     __tablename__='rental_t_c'
 
-    id=Column(GUID, primary_key=True , index=True)
+    id=Column(String(40), primary_key=True, default=func.uuid())
     title=Column(String(255))
     description=Column(Text)
 
@@ -156,7 +157,7 @@ class rental_t_cClass(Base):
 class attributeClass(Base):
     __tablename__='attribute'
 
-    id=Column(GUID , primary_key=True, index=True)
+    id=Column(String(40), primary_key=True, default=func.uuid())
     attribute_name=Column(String(255))
     vehicle =  relationship("vehicleClass", back_populates='attribute')
    
@@ -164,7 +165,7 @@ class attributeClass(Base):
 class insuranceClass(Base):
     __tablename__='insurance'
 
-    id=Column(GUID, primary_key=True, index=True)
+    id=Column(String(40), primary_key=True, default=func.uuid())
     name=Column(String(255))
     amount=Column(Float, index=True)
     type=Column(String(255))
@@ -175,7 +176,7 @@ class insuranceClass(Base):
 class extraClass(Base):
     __tablename__='extra'
 
-    id=Column(GUID, primary_key=True, index=True)
+    id=Column(String(40), primary_key=True, default=func.uuid())
     name=Column(String(255))
     amount=Column(Float, index=True)
     type=Column(String(255))
@@ -187,28 +188,28 @@ class extraClass(Base):
 class driverDetailClass(Base):
     __tablename__ = 'driver_detail'
 
-    id=Column(GUID,primary_key=True, index=True)
+    id=Column(String(40), primary_key=True, default=func.uuid())
     first_name= Column(String(255))
     last_name=Column(String(255))
     title=Column(String(255))
     email=Column(String(255))
-    phone_code=Column(String(255))
+    phone_code=Column(String(255))  
     phone_number=Column(BigInteger)
     driver_age=Column(Integer)
     address=Column(String(1024))
-    city=Column(String(255))
-    postal_code=Column(Integer)
-    country=Column(String(255))
-    remark=Column(String(255))
-    insurance_id=Column(GUID,ForeignKey("insurance.id"))
+    city=Column(String(255),nullable=True)
+    postal_code=Column(Integer,nullable=True)
+    country=Column(String(255),nullable=True)
+    remark=Column(String(255),nullable=True)
+    insurance_id=Column(String(40), ForeignKey("insurance.id"),nullable=True)
     insurance= relationship("insuranceClass")
-    extra_id=Column(GUID,ForeignKey("extra.id"))
+    extra_id=Column(String(40), ForeignKey("extra.id"),nullable=True)
     extra= relationship("extraClass")
     
 class cancellationClass(Base):
     __tablename__='cancellation'
 
-    id=Column(GUID, primary_key=True)
+    id = Column(String(40), primary_key=True, default=func.uuid())
     reason=Column(String(1024))
     charges=Column(Float)
 
