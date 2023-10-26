@@ -2,7 +2,8 @@ import uuid
 from fastapi import FastAPI,HTTPException,Depends,status
 from fastapi.responses import JSONResponse,HTMLResponse
 from pydantic import BaseModel,validator
-from typing import Annotated,List, Optional
+from typing import Annotated, List, Optional
+from typing import List, Optional
 import models
 from uuid import uuid4, UUID
 from datetime import date, datetime, time, timedelta
@@ -91,12 +92,12 @@ class locationBase(BaseModel):
 
 class modifysearchBase(BaseModel):
     pick_up_locations: str
-    drop_off_locations: Optional[str] = None
+    drop_off_locations: str
     pick_up_date_time: datetime
     drop_off_date_time: datetime
-    vehicle_type:Optional[List[str]] = []  
+    vehicle_type:list
     driver_age:int
-    paymentType:Optional[List[str]] = []  
+    paymentType:list 
 
 
 class vehicleBase(BaseModel):
@@ -140,13 +141,13 @@ class vehicleGroupBase(BaseModel):
 
 class t_cBase(BaseModel):
     title:str
-    description:str |None=None
+    description:str 
     class Config:
         orm_mode=True
 
 class rental_t_cBase(BaseModel):
     title:str
-    description:str |None=None
+    description:str 
     class Config:
         orm_mode=True
 
