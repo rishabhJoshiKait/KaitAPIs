@@ -234,6 +234,7 @@ class vehicle_categoryBase(BaseModel):
         orm_mode=True
 
 class cancellationBase(BaseModel):
+    id:str
     reason:str
     charges:int
     class Config:
