@@ -8,7 +8,7 @@ from datetime import date, datetime, time, timedelta
 from database import engine,SessionLocal
 from sqlalchemy.orm import Session
 import httpx
-from typing import List
+from typing import List, Optional
 from pydantic.dataclasses import dataclass
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -19,11 +19,11 @@ origins = [
     "*",
     "/*",
     "http://localhost",
-    "http://localhost:8000",
+    "http://localhost:8002",
     "http://localhost",
     "http://localhost:3000",
     "https://localhost",
-    "https://localhost:8000",
+    "https://localhost:8002",
     "http://127.0.0.1:5500/",
 ]
 
@@ -74,20 +74,16 @@ class ManagebookingBase(BaseModel):
     booking_reference:str
     
 class categoryBase(BaseModel):
-    id:UUID = uuid4()
     name:str
 
 class AcrissBase(BaseModel):
-    id:UUID = uuid4()
     name:str
     class Config:
         orm_mode=True
 
 
 class locationBase(BaseModel):
-    id:UUID = uuid4()
     location_name:str
-    days:UUID = uuid4()
     class Config:
         orm_mode=True
 
@@ -102,7 +98,6 @@ class modifysearchBase(BaseModel):
 
 
 class vehicleBase(BaseModel):
-    id:UUID = uuid4()
     name:str
     vehicle_type:str
     location_name:str
@@ -113,19 +108,18 @@ class vehicleBase(BaseModel):
     rating:float
     payment_method:str
     rating_count:int
-    acriss_id:UUID = uuid4()
+    acriss_id:Optional[str]
     image:str
-    attribute_id:UUID = uuid4()
-    location_id:UUID = uuid4()
-    vehicle_group_id:UUID = uuid4()
-    inclusion_id:UUID = uuid4()
-    category_id:UUID = uuid4()
+    attribute_id:Optional[str]
+    location_id:Optional[str]
+    vehicle_group_id:Optional[str]
+    inclusion_id:Optional[str]
+    category_id:Optional[str]
     class Config:
         orm_mode=True
 
 
 class locationBase(BaseModel):
-    id:UUID = uuid4()
     location_name:str
     image:str
     days:UUID = uuid4()
@@ -133,27 +127,22 @@ class locationBase(BaseModel):
         orm_mode=True
 
 class inclusionBase(BaseModel):
-    id:UUID = uuid4()
     name:str
 
 
 class vehicleGroupBase(BaseModel):
-    id:UUID = uuid4()
     name:str
     class Config:
         orm_mode=True
 
 
-
 class t_cBase(BaseModel):
-    id:UUID = uuid4()
     title:str
     description:str
     class Config:
         orm_mode=True
 
 class rental_t_cBase(BaseModel):
-    id:UUID = uuid4()
     title:str
     description:str
     class Config:
@@ -161,13 +150,12 @@ class rental_t_cBase(BaseModel):
 
 
 class attributeBase(BaseModel):
-    id:UUID = uuid4()
+
     attribute_name:str
     class Config:
         orm_mode=True
 
 class insuranceBase(BaseModel):
-    id:UUID = uuid4()
     name:str
     amount:float
     type:str
@@ -176,7 +164,6 @@ class insuranceBase(BaseModel):
         orm_mode=True
 
 class extraBase(BaseModel):
-    id:UUID = uuid4()
     name:str
     amount:float
     type:str
@@ -186,7 +173,6 @@ class extraBase(BaseModel):
         orm_mode=True
 
 class booking_vehicleBase(BaseModel):
-    id:UUID = uuid4()
     name:str
     booking_ref:str
     pickup_Date:datetime
@@ -203,16 +189,15 @@ class booking_vehicleBase(BaseModel):
     tax:int
     paid:int
     dueCheck_out:int
-    acriss_id:UUID = uuid4()
-    driver_detail_id:UUID = uuid4()
-    t_cid:UUID = uuid4()
-    inclusionid:UUID = uuid4()
-    locationid:UUID = uuid4()
+    acriss_id:Optional[str]
+    driver_detail_id:Optional[str]
+    t_cid:Optional[str]
+    inclusionid:Optional[str]
+    locationid:Optional[str]
     class Config:
         orm_mode=True
 
 class driver_detailBase(BaseModel):
-    id:UUID = uuid4()
     first_name:str
     last_name:str
     title:str
@@ -220,39 +205,35 @@ class driver_detailBase(BaseModel):
     phone_code:str
     phone_number:int
     driver_age:int
-    address:str
-    city:str
-    postal_code:str
-    country:str
-    remark:str
-    insurance_id:UUID = uuid4()
-    extra_id:UUID = uuid4()
+    address:Optional[str]
+    city:Optional[str]
+    postal_code:Optional[str]
+    country:Optional[str]
+    remark:Optional[str]
+    insurance_id:Optional[str]
+    extra_id:Optional[str]
     class Config:
         orm_mode=True
 
 class days_hoursBase(BaseModel):
-    id:UUID = uuid4()
     opening_hour:time
     closing_hour:time
     class Config:
         orm_mode=True
 
 class daysBase(BaseModel):
-    id:UUID = uuid4()
-    day_hour_id: UUID = uuid4()
+    day_hour_id: Optional[str]
     weekday:str
     is_closed:bool
     class Config:
         orm_mode=True
 
 class vehicle_categoryBase(BaseModel):
-    id:UUID = uuid4()
     name:str
     class Config:
         orm_mode=True
 
 class cancellationBase(BaseModel):
-    id:UUID = uuid4()
     reason:str
     charges:int
     class Config:
@@ -294,10 +275,10 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
 
     for vehicle in locationdata:
         async with httpx.AsyncClient() as client:
-            response = await client.get("http://127.0.0.1:8000/attribute/all")
-            response1 = await client.get("http://127.0.0.1:8000/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
-            response2= await client.get("http://127.0.0.1:8000/inclusion/all")
-            # response3=await client.get("http://127.0.0.1:8000/locationById/1")
+            response = await client.get("http://127.0.0.1:8002/attribute/all")
+            response1 = await client.get("http://127.0.0.1:8002/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
+            response2= await client.get("http://127.0.0.1:8002/inclusion/all")
+            # response3=await client.get("http://127.0.0.1:8002/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -323,53 +304,67 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
     
     return {'vehicledata':vehicledataList}
 
-#locationSearch
+#ModifylocationSearch
 @app.post("/modifylocationSearch")
 async def location_search(location: modifysearchBase,db: Session = Depends(get_db)):
-    query = db.query(models.locationClass)
-    query1 = db.query(models.vehicleClass)
-    # if location:
-    #     query = query.filter(models.locationClass.location_name == location.pick_up_locations)
-    #     locationdata = query.first()
-    if location:
-        query1= query1.filter(models.vehicleClass.payment_method == location.paymentType)
-        data=query1.all()
+    query = db.query(models.vehicleClass)
 
     if location:
-        query1=query1.filter(models.vehicleClass.location_name == location.pick_up_locations)
-        data=query1.all()
-        vehicless=data
+        query = query.filter(models.vehicleClass.location_name == location.pick_up_locations)
+        locationdata= query.all()
         
-    if vehicless is None:
-        raise HTTPException(status_code=404, detail="location ot found")
-    if location:
-        query1= query1.filter(models.vehicleClass.payment_method == location.paymentType)
-        data=query1.all()
-        vehicless=data
-
-    if location:
-        query1= query1.filter(models.vehicleClass.vehicle_type == location.vehicle_type)
-        data=query1.all()
-        vehicless=data
-    if vehicless is None:
-        raise HTTPException(status_code=404, detail="vehicle not found")
+    if locationdata is None:
+        raise HTTPException(status_code=404, detail="location not found")
     # vehicledata=db.query(models.locationClass).all()
-
-    
-
+    print(locationdata,"LocationData")
     vehicledataList = []
-    async with httpx.AsyncClient() as client:
-            response = await client.get("http://127.0.0.1:8000/vehicleSearched")
+    for item in locationdata:
+        if location.vehicle_type and location.paymentType:
+            if any(v in item.vehicle_type for v in location.vehicle_type):
+                vehicledataList.append(item)
+        elif location.vehicle_type:
+            if any(v in item.vehicle_type for v in location.vehicle_type):
+                vehicledataList.append(item)
+        elif location.paymentType:
+            if any(p in item.payment_method for p in location.paymentType):
+                vehicledataList.append(item)
+                
+        async with httpx.AsyncClient() as client:
+            response = await client.get("http://127.0.0.1:8002/attribute/all")
+            response1 = await client.get("http://127.0.0.1:8002/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
+            response2= await client.get("http://127.0.0.1:8002/inclusion/all")
+            # response3=await client.get("http://127.0.0.1:8002/locationById/1")
+            attribute_data = response.json()
+            acriss_data=response1.json()
+            inclusion_data=response2.json()
             
-            vehicleData = response.json()
-            
-            
-            vehicledataList.append({
-            "vehicles": vehicleData
+    data=[]
+    data.append({
+        "inclusion":inclusion_data,
+        "attribute":attribute_data
+    })
+   
+    responseData=[]
+    for data in vehicledataList:
+        responseData.append({
+            "id": data.id,
+            "name": data.name,
+            "image": data.image,
+            "price": data.price,
+            "location":data.location_name,
+            "vehicle_type": data.vehicle_type,
+            "local_fee": data.local_fee,
+            "rating": data.rating,
+            "rating_count": data.rating_count,
+            "payment_method": data.payment_method,
+            "excess_amount": data.excess_amount,
+            "vehicle_group": data.vehicle_group_id,
+            # "location": location_data,
+            "inclusion": inclusion_data,
+            "attributes": attribute_data
         })
-    # locationName=locationdata.location_name
-    # print(locationdata.location_name)
-    return {'vehicledata':vehicledataList}
+    
+    return {'vehicledata':responseData}
 
 
 @app.post("/categoryVehicle")
@@ -401,12 +396,11 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     vehicledataList = []
     locations=[]
     async with httpx.AsyncClient() as client:
-        response = await client.get("http://127.0.0.1:8000/rental_t_c/all")
-        response1=await client.get("http://127.0.0.1:8000/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
-        locationss=await client.get("http://127.0.0.1:8000/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
-        response2=await client.get("http://127.0.0.1:8000/inclusion/all")
-        response3=await client.get("http://127.0.0.1:8000/day_hoursById/c45aa0b6-2f9a-4ea8-bd12-a3c144bfa1d6")
-        response4=await client.get("http://127.0.0.1:8000/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
+        response = await client.get("http://127.0.0.1:8002/rental_t_c/all")
+        response1=await client.get("http://127.0.0.1:8002/locationById/c6b76f67-733d-11ee-84a6-f4ee08baab93")
+        locationss=await client.get("http://127.0.0.1:8002/locationById/d53cdd36-733d-11ee-84a6-f4ee08baab93")
+        response2=await client.get("http://127.0.0.1:8002/inclusion/all")
+        response4=await client.get("http://127.0.0.1:8002/driver_detailId/3832c40e-7331-11ee-84a6-f4ee08baab93")
         t_cdata = response.json()
         inclusion_data=response2.json()
         location1_data=response1.json()
@@ -470,7 +464,7 @@ async def read_acriss(acriss_id:UUID, db:db_dependency):
 @app.get("/acriss/all",status_code=status.HTTP_200_OK,tags=["Acriss"])
 async def get_All(db: Session = Depends(get_db)):
     acriss_data=db.query(models.acrissClass).all()
-    return {'status':'sucess', 'acriss':acriss_data}
+    return acriss_data
 
 # @app.get("/acriss/{acriss_id}")
 # def get_acriss_with_booking_vehicle(acriss_id: int, db: Session = Depends(get_db)):
@@ -501,7 +495,7 @@ async def delete_acriss(acriss_id:UUID ,db:db_dependency):
 
 #update acriss
 @app.put("/acriss/{acriss_id}",status_code=status.HTTP_200_OK,response_model=AcrissBase,tags=["Acriss"])
-async def update_acriss(acriss_id:int ,db:db_dependency,acriss:AcrissBase):
+async def update_acriss(acriss_id:UUID ,db:db_dependency,acriss:AcrissBase):
     try:
         db_acriss_update=db.query(models.acrissClass).filter(models.acrissClass.id==acriss_id).first()
         db_acriss_update.name=acriss.name
@@ -564,10 +558,10 @@ async def get_All(db: Session = Depends(get_db)):
     vehicledataList = []
     for vehicle in vehicledata:
         async with httpx.AsyncClient() as client:
-            response = await client.get("http://127.0.0.1:8000/attribute/all")
-            response1 = await client.get("http://127.0.0.1:8000/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
-            response2= await client.get("http://127.0.0.1:8000/inclusion/all")
-            # response3=await client.get("http://127.0.0.1:8000/locationById/1")
+            response = await client.get("http://127.0.0.1:8002/attribute/all")
+            response1 = await client.get("http://127.0.0.1:8002/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
+            response2= await client.get("http://127.0.0.1:8002/inclusion/all")
+            # response3=await client.get("http://127.0.0.1:8002/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -672,8 +666,8 @@ async def read_vehicle(location_id:UUID, db:db_dependency):
     location=db.query(models.locationClass).filter(models.locationClass.id==location_id).first()
     locationdataList = []
     async with httpx.AsyncClient() as client:
-            response = await client.get("http://127.0.0.1:8000/day_hoursById/1")
-            response1 = await client.get("http://127.0.0.1:8000/daysById/1")
+            response = await client.get("http://127.0.0.1:8002/day_hoursById/1")
+            response1 = await client.get("http://127.0.0.1:8002/daysById/1")
             dayHours_data = response.json()
             days_data=response1.json()
             
@@ -1070,11 +1064,11 @@ async def get_conformation(db: Session = Depends(get_db)):
     vehicledataList = []
     locations=[]
     async with httpx.AsyncClient() as client:
-            response1= await client.get("http://127.0.0.1:8000/inclusion/all")
-            response2=await client.get("http://127.0.0.1:8000/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
-            locationss=await client.get("http://127.0.0.1:8000/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
-            response3=await client.get("http://127.0.0.1:8000/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
-            response4=await client.get("http://127.0.0.1:8000/t_c/all")
+            response1= await client.get("http://127.0.0.1:8002/inclusion/all")
+            response2=await client.get("http://127.0.0.1:8002/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
+            locationss=await client.get("http://127.0.0.1:8002/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
+            response3=await client.get("http://127.0.0.1:8002/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
+            response4=await client.get("http://127.0.0.1:8002/t_c/all")
             inclusion_data= response1.json()
             location1_data=response2.json()
             location2_data=locationss.json()
@@ -1175,8 +1169,8 @@ async def create_driver_detai(driver: driver_detailBase, db: db_dependency):
 async def get_All(db: Session = Depends(get_db)):
     driver_data=db.query(models.driverDetailClass).all()
     vehicledataList = []
-    # base_url="http://127.0.0.1:8000/insuranceId/1"
-    # url1="http://127.0.0.1:8000/extra/all"
+    # base_url="http://127.0.0.1:8002/insuranceId/1"
+    # url1="http://127.0.0.1:8002/extra/all"
     # for driver in driver_data:
     #     async with httpx.AsyncClient() as client:
     #         # url=base_url.format(driver.id)
@@ -1310,14 +1304,14 @@ async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booki
             "name":booking_vehicle.name
         })
         async with httpx.AsyncClient() as client:
-            response1= await client.get("http://127.0.0.1:8000/inclusionById/1")
+            response1= await client.get("http://127.0.0.1:8002/inclusionById/1")
             inclusionData=response1.json()
         print(booking_vehicle.name)
         return db_booking_vehicle_update
         
     except:
         async with httpx.AsyncClient() as client:
-            response1= await client.get("http://127.0.0.1:8000/inclusionById/1")
+            response1= await client.get("http://127.0.0.1:8002/inclusionById/1")
         return HTTPException(status_code=404, detail="booking_vehicle not found")
 
 
@@ -1326,12 +1320,12 @@ async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booki
 async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     booking_vehicle=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
     async with httpx.AsyncClient() as client:
-            response1= await client.get("http://127.0.0.1:8000/inclusion/all")
-            response2= await client.get("http://127.0.0.1:8000/attribute/all")
-            response3=await client.get("http://127.0.0.1:8000/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
-            locationss=await client.get("http://127.0.0.1:8000/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
-            response4=await client.get("http://127.0.0.1:8000/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
-            response5=await client.get("http://127.0.0.1:8000/extra/all")
+            response1= await client.get("http://127.0.0.1:8002/inclusion/all")
+            response2= await client.get("http://127.0.0.1:8002/attribute/all")
+            response3=await client.get("http://127.0.0.1:8002/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
+            locationss=await client.get("http://127.0.0.1:8002/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
+            response4=await client.get("http://127.0.0.1:8002/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
+            response5=await client.get("http://127.0.0.1:8002/extra/all")
             inclusionData=response1.json()
             attributeData=response2.json()
             location1_data=response3.json()
