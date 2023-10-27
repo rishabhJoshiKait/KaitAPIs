@@ -2,7 +2,8 @@ import uuid
 from fastapi import FastAPI,HTTPException,Depends,status
 from fastapi.responses import JSONResponse,HTMLResponse
 from pydantic import BaseModel,validator
-from typing import Annotated, List, Optional
+from typing import  List, Optional
+from typing_extensions import Annotated
 from typing import List, Optional
 import models
 from uuid import uuid4, UUID
