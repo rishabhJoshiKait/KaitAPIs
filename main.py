@@ -1084,9 +1084,9 @@ async def get_conformation(db: Session = Depends(get_db)):
     locations=[]
     async with httpx.AsyncClient() as client:
             response1= await client.get("http://127.0.0.1:8000/inclusion/all")
-            response2=await client.get("http://127.0.0.1:8000/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
-            locationss=await client.get("http://127.0.0.1:8000/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
-            response3=await client.get("http://127.0.0.1:8000/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
+            response2=await client.get("http://127.0.0.1:8000/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
+            locationss=await client.get("http://127.0.0.1:8000/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
+            response3=await client.get("http://127.0.0.1:8000/driver_detailId/dbfbdac9-531d-451c-87fc-29f54198189c")
             response4=await client.get("http://127.0.0.1:8000/t_c/all")
             inclusion_data= response1.json()
             location1_data=response2.json()
