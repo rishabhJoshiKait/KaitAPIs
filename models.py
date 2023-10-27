@@ -59,7 +59,7 @@ class booking_vehicleClass(Base):
 class inclusionClass(Base):
     __tablename__= 'inclusion'
 
-    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+    id= Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     name=Column(String(255))
     vehicle =  relationship("vehicleClass", back_populates='inclusion')
     booking_vehicle=relationship("booking_vehicleClass")
