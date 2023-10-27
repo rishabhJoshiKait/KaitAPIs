@@ -2,8 +2,8 @@ import uuid
 from fastapi import FastAPI,HTTPException,Depends,status
 from fastapi.responses import JSONResponse,HTMLResponse
 from pydantic import BaseModel,validator
-from typing import  List, Optional
-from typing_extensions import Annotated
+from typing import Annotated, List, Optional
+from typing import List, Optional
 import models
 from uuid import uuid4, UUID
 from datetime import date, datetime, time, timedelta
@@ -194,7 +194,7 @@ class booking_vehicleBase(BaseModel):
     acriss_id:UUID = uuid4()
     driver_detail_id:UUID = uuid4()
     t_cid:UUID = uuid4()
-    inclusionid:int
+    inclusionid:UUID = uuid4()
     locationid:UUID = uuid4()
     class Config:
         orm_mode=True
@@ -405,11 +405,10 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     locations=[]
     async with httpx.AsyncClient() as client:
         response = await client.get("http://127.0.0.1:8000/rental_t_c/all")
-        response1=await client.get("http://127.0.0.1:8000/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
-        locationss=await client.get("http://127.0.0.1:8000/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
+        response1=await client.get("http://127.0.0.1:8000/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
+        locationss=await client.get("http://127.0.0.1:8000/locationById/61d17365-12a0-4e4a-8c93-d567e42f00ab")
         response2=await client.get("http://127.0.0.1:8000/inclusion/all")
-        response3=await client.get("http://127.0.0.1:8000/day_hoursById/c45aa0b6-2f9a-4ea8-bd12-a3c144bfa1d6")
-        response4=await client.get("http://127.0.0.1:8000/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
+        response4=await client.get("http://127.0.0.1:8000/driver_detailId/dbfbdac9-531d-451c-87fc-29f54198189c")
         t_cdata = response.json()
         inclusion_data=response2.json()
         location1_data=response1.json()
@@ -536,6 +535,16 @@ async def read_inclusion(inclusion_id:UUID, db:db_dependency):
     if insclusion is None:
         raise HTTPException(status_code=404, detail='insclusion not found')
     return {insclusion}
+
+#delete location
+@app.delete("/inclusion/{inclusion_id}",status_code=status.HTTP_200_OK,tags=["Inclusion"])
+async def delete_location(inclusion_id:UUID ,db:db_dependency):
+    db_location=db.query(models.inclusionClass).filter(models.inclusionClass.id==inclusion_id).first()
+    if db_location is None:
+        raise HTTPException(status_code=404 , detail="inclsuin was not founded")
+    db.delete(db_location)
+    db.commit()
+    return db_location
 
 
 # create vehicle
