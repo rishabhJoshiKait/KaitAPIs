@@ -15,6 +15,7 @@ from typing import List
 import httpx
 from pydantic.dataclasses import dataclass
 from fastapi.middleware.cors import CORSMiddleware
+from urllib.parse import urljoin
 
 app=FastAPI(title="Fleetrez B2C" ,description="For serving better quality of API without lagging")
 models.Base.metadata.create_all(bind=engine)
@@ -280,10 +281,10 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
 
     for vehicle in locationdata:
         async with httpx.AsyncClient() as client:
-            response = await client.get("https://kaitapis.onrender.com/attribute/all")
-            response1 = await client.get("https://kaitapis.onrender.com/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
-            response2= await client.get("https://kaitapis.onrender.com/inclusion/all")
-            # response3=await client.get("https://kaitapis.onrender.com/locationById/1")
+            response = await client.get("https://fleetresapis.onrender.com/attribute/all")
+            response1 = await client.get("https://fleetresapis.onrender.com/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
+            response2= await client.get("https://fleetresapis.onrender.com/inclusion/all")
+            # response3=await client.get("https://fleetresapis.onrender.com/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -333,12 +334,15 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
         elif location.paymentType:
             if any(p in item.payment_method for p in location.paymentType):
                 vehicledataList.append(item)
+        elif location.paymentType:
+            if any(p in item.payment_method for p in location.paymentType):
+                vehicledataList.append(item)
                 
         async with httpx.AsyncClient() as client:
-            response = await client.get("https://kaitapis.onrender.com/attribute/all")
-            response1 = await client.get("https://kaitapis.onrender.com/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
-            response2= await client.get("https://kaitapis.onrender.com/inclusion/all")
-            # response3=await client.get("https://kaitapis.onrender.com/locationById/1")
+            response = await client.get("https://fleetresapis.onrender.com/attribute/all")
+            response1 = await client.get("https://fleetresapis.onrender.com/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
+            response2= await client.get("https://fleetresapis.onrender.com/inclusion/all")
+            # response3=await client.get("https://fleetresapis.onrender.com/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -398,19 +402,28 @@ async def vehicleCategory(cvehicle: categoryVehicle,db:Session=Depends(get_db)):
 @app.post("/managebooking")
 async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(get_db)):
     query = db.query(models.booking_vehicleClass)
+    # query1= db.query(models.driverDetailClass)
     if managebooking:
         query = query.filter(models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
+    bookingVehicledata= query.first()
+    driverid=bookingVehicledata.driver_detail_id
+    # print("+++++++++++++++++++++++",driverid)
+    if managebooking:
+        query = query.filter(models.driverDetailClass.email == managebooking.email)
     bookingVehicledata= query.first()
     if bookingVehicledata is None:
         raise HTTPException(status_code=404, detail="bookings  not found")
     vehicledataList = []
     locations=[]
+    drurl="https://fleetresapis.onrender.com/driver_detailId/"
+    driverurl=urljoin(drurl,str(driverid))
+    print("id",driverurl)
     async with httpx.AsyncClient() as client:
-        response = await client.get("https://kaitapis.onrender.com/rental_t_c/all")
-        response1=await client.get("https://kaitapis.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
-        locationss=await client.get("https://kaitapis.onrender.com/locationById/61d17365-12a0-4e4a-8c93-d567e42f00ab")
-        response2=await client.get("https://kaitapis.onrender.com/inclusion/all")
-        response4=await client.get("https://kaitapis.onrender.com/driver_detailId/dbfbdac9-531d-451c-87fc-29f54198189c")
+        response = await client.get("https://fleetresapis.onrender.com/rental_t_c/all")
+        response1=await client.get("https://fleetresapis.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
+        locationss=await client.get("https://fleetresapis.onrender.com/locationById/61d17365-12a0-4e4a-8c93-d567e42f00ab")
+        response2=await client.get("https://fleetresapis.onrender.com/inclusion/all")
+        response4=await client.get(driverurl)
         t_cdata = response.json()
         inclusion_data=response2.json()
         location1_data=response1.json()
@@ -578,10 +591,10 @@ async def get_All(db: Session = Depends(get_db)):
     vehicledataList = []
     for vehicle in vehicledata:
         async with httpx.AsyncClient() as client:
-            response = await client.get("https://kaitapis.onrender.com/attribute/all")
-            response1 = await client.get("https://kaitapis.onrender.com/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
-            response2= await client.get("https://kaitapis.onrender.com/inclusion/all")
-            # response3=await client.get("https://kaitapis.onrender.com/locationById/1")
+            response = await client.get("https://fleetresapis.onrender.com/attribute/all")
+            response1 = await client.get("https://fleetresapis.onrender.com/acrissById/6414fa67-6ff0-41f1-9f2f-b043be2a0344")
+            response2= await client.get("https://fleetresapis.onrender.com/inclusion/all")
+            # response3=await client.get("https://fleetresapis.onrender.com/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -686,8 +699,8 @@ async def read_vehicle(location_id:UUID, db:db_dependency):
     location=db.query(models.locationClass).filter(models.locationClass.id==location_id).first()
     locationdataList = []
     async with httpx.AsyncClient() as client:
-            response = await client.get("https://kaitapis.onrender.com/day_hoursById/1")
-            response1 = await client.get("https://kaitapis.onrender.com/daysById/1")
+            response = await client.get("https://fleetresapis.onrender.com/day_hoursById/1")
+            response1 = await client.get("https://fleetresapis.onrender.com/daysById/1")
             dayHours_data = response.json()
             days_data=response1.json()
             
@@ -1080,15 +1093,19 @@ async def get_All(db: Session = Depends(get_db)):
 @app.get("/booking_conformation",status_code=status.HTTP_200_OK)
 async def get_conformation(db: Session = Depends(get_db)):
     booking_vehicle_data=db.query(models.booking_vehicleClass).first()
-    tc=db.query(models.t_cClass).all()
+    # tc=db.query(models.t_cClass).all()
+    driverid=booking_vehicle_data.driver_detail_id
+    drurl="https://fleetresapis.onrender.com/driver_detailId/"
+    driverurl=urljoin(drurl,str(driverid))
+    print("id",driverurl)
     vehicledataList = []
     locations=[]
     async with httpx.AsyncClient() as client:
-            response1= await client.get("https://kaitapis.onrender.com/inclusion/all")
-            response2=await client.get("https://kaitapis.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
-            locationss=await client.get("https://kaitapis.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
-            response3=await client.get("https://kaitapis.onrender.com/driver_detail_latest")
-            response4=await client.get("https://kaitapis.onrender.com/t_c/all")
+            response1= await client.get("https://fleetresapis.onrender.com/inclusion/all")
+            response2=await client.get("https://fleetresapis.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
+            locationss=await client.get("https://fleetresapis.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
+            response3=await client.get(driverurl)
+            response4=await client.get("https://fleetresapis.onrender.com/t_c/all")
             inclusion_data= response1.json()
             location1_data=response2.json()
             location2_data=locationss.json()
@@ -1317,14 +1334,14 @@ async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booki
 async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     booking_vehicle=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
     async with httpx.AsyncClient() as client:
-            response1= await client.get("https://kaitapis.onrender.com/inclusion/all")
-            response2= await client.get("https://kaitapis.onrender.com/attribute/all")
-            response3=await client.get("https://kaitapis.onrender.com/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
-            locationss=await client.get("https://kaitapis.onrender.com/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
-            response4=await client.get("https://kaitapis.onrender.com/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
-            response5=await client.get("https://kaitapis.onrender.com/extra/all")
-            response6=await client.get("https://kaitapis.onrender.com/insuranceId/5033b7d9-6135-4f05-a3b6-59debb1cc737")
-            response7=await client.get("https://kaitapis.onrender.com/insuranceId/55bffe9a-b1c2-4823-991d-15c4c35697c3")
+            response1= await client.get("https://fleetresapis.onrender.com/inclusion/all")
+            response2= await client.get("https://fleetresapis.onrender.com/attribute/all")
+            response3=await client.get("https://fleetresapis.onrender.com/locationById/85514367-15d3-47d3-9e02-ea0b31119709")
+            locationss=await client.get("https://fleetresapis.onrender.com/locationById/2a2b7878-080f-487f-9a01-ea23fac93770")
+            response4=await client.get("https://fleetresapis.onrender.com/driver_detailId/37cf8023-8c5b-4137-bb4b-efa5f1f61a8b")
+            response5=await client.get("https://fleetresapis.onrender.com/extra/all")
+            response6=await client.get("https://fleetresapis.onrender.com/insuranceId/5033b7d9-6135-4f05-a3b6-59debb1cc737")
+            response7=await client.get("https://fleetresapis.onrender.com/insuranceId/55bffe9a-b1c2-4823-991d-15c4c35697c3")
             inclusionData=response1.json()
             attributeData=response2.json()
             location1_data=response3.json()
