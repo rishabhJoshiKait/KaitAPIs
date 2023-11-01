@@ -281,10 +281,10 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
 
     for vehicle in locationdata:
         async with httpx.AsyncClient() as client:
-            response = await client.get("https://fleetresapis.onrender.com/attribute/all")
-            response1 = await client.get("https://fleetresapis.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
-            response2= await client.get("https://fleetresapis.onrender.com/inclusion/all")
-            # response3=await client.get("https://fleetresapis.onrender.com/locationById/1")
+            response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
+            response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
+            response2= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
+            # response3=await client.get("https://fleetrez-api.onrender.com/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -339,10 +339,10 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
                 vehicledataList.append(item)
                 
         async with httpx.AsyncClient() as client:
-            response = await client.get("https://fleetresapis.onrender.com/attribute/all")
-            response1 = await client.get("https://fleetresapis.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
-            response2= await client.get("https://fleetresapis.onrender.com/inclusion/all")
-            # response3=await client.get("https://fleetresapis.onrender.com/locationById/1")
+            response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
+            response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
+            response2= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
+            # response3=await client.get("https://fleetrez-api.onrender.com/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -415,14 +415,14 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="bookings  not found")
     vehicledataList = []
     locations=[]
-    drurl="https://fleetresapis.onrender.com/driver_detailId/"
+    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
     async with httpx.AsyncClient() as client:
-        response = await client.get("https://fleetresapis.onrender.com/rental_t_c/all")
-        response1=await client.get("https://fleetresapis.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
-        locationss=await client.get("https://fleetresapis.onrender.com/locationById/61d17365-12a0-4e4a-8c93-d567e42f00ab")
-        response2=await client.get("https://fleetresapis.onrender.com/inclusion/all")
+        response = await client.get("https://fleetrez-api.onrender.com/rental_t_c/all")
+        response1=await client.get("https://fleetrez-api.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
+        locationss=await client.get("https://fleetrez-api.onrender.com/locationById/61d17365-12a0-4e4a-8c93-d567e42f00ab")
+        response2=await client.get("https://fleetrez-api.onrender.com/inclusion/all")
         response4=await client.get(driverurl)
         t_cdata = response.json()
         inclusion_data=response2.json()
@@ -591,10 +591,10 @@ async def get_All(db: Session = Depends(get_db)):
     vehicledataList = []
     for vehicle in vehicledata:
         async with httpx.AsyncClient() as client:
-            response = await client.get("https://fleetresapis.onrender.com/attribute/all")
-            response1 = await client.get("https://fleetresapis.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
-            response2= await client.get("https://fleetresapis.onrender.com/inclusion/all")
-            # response3=await client.get("https://fleetresapis.onrender.com/locationById/1")
+            response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
+            response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
+            response2= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
+            # response3=await client.get("https://fleetrez-api.onrender.com/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -699,8 +699,8 @@ async def read_vehicle(location_id:UUID, db:db_dependency):
     location=db.query(models.locationClass).filter(models.locationClass.id==location_id).first()
     locationdataList = []
     async with httpx.AsyncClient() as client:
-            response = await client.get("https://fleetresapis.onrender.com/day_hoursById/1")
-            response1 = await client.get("https://fleetresapis.onrender.com/daysById/1")
+            response = await client.get("https://fleetrez-api.onrender.com/day_hoursById/1")
+            response1 = await client.get("https://fleetrez-api.onrender.com/daysById/1")
             dayHours_data = response.json()
             days_data=response1.json()
             
@@ -1095,17 +1095,17 @@ async def get_conformation(db: Session = Depends(get_db)):
     booking_vehicle_data=db.query(models.booking_vehicleClass).first()
     # tc=db.query(models.t_cClass).all()
     driverid=booking_vehicle_data.driver_detail_id
-    drurl="https://fleetresapis.onrender.com/driver_detailId/"
+    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
     vehicledataList = []
     locations=[]
     async with httpx.AsyncClient() as client:
-            response1= await client.get("https://fleetresapis.onrender.com/inclusion/all")
-            response2=await client.get("https://fleetresapis.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
-            locationss=await client.get("https://fleetresapis.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
+            response1= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
+            response2=await client.get("https://fleetrez-api.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
+            locationss=await client.get("https://fleetrez-api.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
             response3=await client.get(driverurl)
-            response4=await client.get("https://fleetresapis.onrender.com/t_c/all")
+            response4=await client.get("https://fleetrez-api.onrender.com/t_c/all")
             inclusion_data= response1.json()
             location1_data=response2.json()
             location2_data=locationss.json()
@@ -1334,17 +1334,17 @@ async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booki
 async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     booking_vehicle=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
     driverid=booking_vehicle.driver_detail_id
-    drurl="https://fleetresapis.onrender.com/driver_detailId/"
+    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     async with httpx.AsyncClient() as client:
-            response1= await client.get("https://fleetresapis.onrender.com/inclusion/all")
-            response2= await client.get("https://fleetresapis.onrender.com/attribute/all")
-            response3=await client.get("https://fleetresapis.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
-            locationss=await client.get("https://fleetresapis.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
+            response1= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
+            response2= await client.get("https://fleetrez-api.onrender.com/attribute/all")
+            response3=await client.get("https://fleetrez-api.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
+            locationss=await client.get("https://fleetrez-api.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
             response4=await client.get(driverurl)
-            response5=await client.get("https://fleetresapis.onrender.com/extra/all")
-            response6=await client.get("https://fleetresapis.onrender.com/insuranceId/cceb9b84-eba1-48b8-ab51-91cb4847cd26")
-            response7=await client.get("https://fleetresapis.onrender.com/insuranceId/a5fb4cf1-de9c-43e4-8b03-c5000dae6ab1")
+            response5=await client.get("https://fleetrez-api.onrender.com/extra/all")
+            response6=await client.get("https://fleetrez-api.onrender.com/insuranceId/cceb9b84-eba1-48b8-ab51-91cb4847cd26")
+            response7=await client.get("https://fleetrez-api.onrender.com/insuranceId/a5fb4cf1-de9c-43e4-8b03-c5000dae6ab1")
             inclusionData=response1.json()
             attributeData=response2.json()
             location1_data=response3.json()
