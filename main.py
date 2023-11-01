@@ -1092,7 +1092,8 @@ async def get_All(db: Session = Depends(get_db)):
 #show all booking_vehicle
 @app.get("/booking_conformation",status_code=status.HTTP_200_OK)
 async def get_conformation(db: Session = Depends(get_db)):
-    booking_vehicle_data=db.query(models.booking_vehicleClass).first()
+    booking_vehicles=db.query(models.booking_vehicleClass).all()
+    booking_vehicle_data=booking_vehicles[-1]
     # tc=db.query(models.t_cClass).all()
     driverid=booking_vehicle_data.driver_detail_id
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
