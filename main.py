@@ -1203,7 +1203,7 @@ async def create_driver_detail(driver: driver_detailBase, db: db_dependency):
 @app.get("/driver_detail_latest",status_code=status.HTTP_200_OK,tags=["Driver_Details"])
 async def get_All(db: Session = Depends(get_db)):
     driver_data=db.query(models.driverDetailClass).all()
-    return driver_data[-1]
+    return {"driver_detail":driver_data[-1]}
 
 #show all days
 @app.get("/driver_detail",status_code=status.HTTP_200_OK,tags=["Driver_Details"])
