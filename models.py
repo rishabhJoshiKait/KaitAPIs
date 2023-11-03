@@ -78,7 +78,7 @@ class vehicleClass(Base):
     __tablename__ = 'vehicle'
     
     id =Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    name = Column(String(255), unique=True)
+    name = Column(String(collation="utf8_general_ci"))
     vehicle_type= Column(String(255))
     excess_amount = Column(Float)
     local_fee=Column(Float)
