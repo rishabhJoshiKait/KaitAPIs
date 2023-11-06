@@ -409,7 +409,7 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     driverid=bookingVehicledata.driver_detail_id
     # print("+++++++++++++++++++++++",driverid)
     if managebooking:
-        query = query.filter(models.driverDetailClass.email == managebooking.email)
+         query = query.filter(models.driverDetailClass.email == managebooking.email and models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     bookingVehicledata= query.first()
     if bookingVehicledata is None:
         raise HTTPException(status_code=404, detail="bookings  not found")
