@@ -11,6 +11,7 @@ from uuid import uuid4, UUID
 from datetime import date, datetime, time, timedelta
 from database import engine,SessionLocal
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 import httpx
 from pydantic.dataclasses import dataclass
@@ -271,7 +272,7 @@ db_dependency = Annotated[Session,Depends(get_db)]
 async def location_search(location: location_searchBase,db: Session = Depends(get_db)):
     query = db.query(models.vehicleClass)
     if location:
-        query = query.filter(models.vehicleClass.location_name == location.pick_up_locations)
+        query = query.filter(func.lower(models.vehicleClass.location_name) == func.lower(location.pick_up_locations))
         locationdata= query.all()
         
     if locationdata is None:
