@@ -381,7 +381,7 @@ async def vehicleCategory(cvehicle: categoryVehicle,db:Session=Depends(get_db)):
     cataegory_data=quer1.all()
     
     if cvehicle:
-        query = query.filter(models.vehicleClass.vehicle_type == cvehicle.name)
+        query = query.filter(func.lower(models.vehicleClass.vehicle_type) == func.lower(cvehicle.name))
     vehicle_data= query.all()
     if vehicle_data is None:
         raise HTTPException(status_code=404, detail="vehicle cannot found for this category")
