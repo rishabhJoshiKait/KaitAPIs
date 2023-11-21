@@ -1269,7 +1269,7 @@ async def create_cancellation(cancellation: cancellationBase, db: db_dependency)
     db_cancellation = models.cancellationClass(**cancellation.dict())
     db.add(db_cancellation)
     db.commit()
-     return {"cancellation":cancellation, "message": "Booking Cancelled"}
+    return {"cancellation":cancellation, "message": "Booking Cancelled"}
 
 
 # #display cancelalation_Charges by id
