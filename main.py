@@ -405,12 +405,20 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
         query = query.filter(models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     bookingVehicledata= query.first()
     driverid=bookingVehicledata.driver_detail_id
-    # print("+++++++++++++++++++++++",driverid)
+    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
+    driverurl=urljoin(drurl,str(driverid))
+    print("id",driverurl)
+    async with httpx.AsyncClient() as client:
+        responsess=await client.get(driverurl)
+        driver_data=responsess.json()
+        drivers=driver_data['driver_detail']['email']
+        print("drivers data",drivers)
+    query = query.filter(drivers == managebooking.email and models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     if managebooking:
         query = query.filter(models.driverDetailClass.email == managebooking.email and models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     bookingVehicledata= query.first()
     if bookingVehicledata is None:
-        raise HTTPException(status_code=404, detail="bookings  not found")
+        raise HTTPException(status_code=404, detail="bookings not found")
     vehicledataList = []
     locations=[]
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
@@ -456,8 +464,7 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "driver_detail":driver_data
         })
     
-    return {'vehicledata':vehicledataList}
-                        
+    return {'vehicledata':vehicledataList} 
 
 
 
@@ -1262,7 +1269,7 @@ async def create_cancellation(cancellation: cancellationBase, db: db_dependency)
     db_cancellation = models.cancellationClass(**cancellation.dict())
     db.add(db_cancellation)
     db.commit()
-    return cancellation
+     return {"cancellation":cancellation, "message": "Booking Cancelled"}
 
 
 # #display cancelalation_Charges by id
