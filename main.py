@@ -184,12 +184,11 @@ class booking_vehicleBase(BaseModel):
     pickup_Date:Optional[datetime] = None
     dropoff_Date:Optional[datetime] = None
     vehicle_type:Optional[str] = None
-    excess_amount:Optional[float] = None
-    fee:Optional[float] = None
+    excess_amount:Optional[int] = None
+    fee:Optional[int] = None
     rating:Optional[float] = None
     rating_count:Optional[int] = None
     image:Optional[str] = None
-    total:Optional[int] = None
     car_rental:Optional[int] = None
     Insurance:Optional[int] = None
     tax:Optional[int] = None
@@ -1122,13 +1121,14 @@ async def get_conformation(db: Session = Depends(get_db)):
                 "location2":location2_data
             })
             total_data = (
-        booking_vehicle_data.car_rental or 0 +
-        booking_vehicle_data.Insurance or 0+
-        booking_vehicle_data.tax or 0 +
-        booking_vehicle_data.paid or 0 +
-        booking_vehicle_data.dueCheck_out or 0+
-        booking_vehicle_data.fee or 0
-    )
+        int(booking_vehicle_data.car_rental) +
+        int(booking_vehicle_data.excess_amount) +
+        int(booking_vehicle_data.fee) +
+        int(booking_vehicle_data.Insurance)+
+        int(booking_vehicle_data.tax)+
+        int(booking_vehicle_data.paid)+
+        int(booking_vehicle_data.dueCheck_out))
+            
             vehicledataList.append({
             "id": booking_vehicle_data.id,
             "name": booking_vehicle_data.name,
