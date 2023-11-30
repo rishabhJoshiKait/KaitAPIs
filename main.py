@@ -1121,6 +1121,14 @@ async def get_conformation(db: Session = Depends(get_db)):
                 "loacation1":location1_data,
                 "location2":location2_data
             })
+            total_data = (
+        booking_vehicle_data.car_rental or 0 +
+        booking_vehicle_data.Insurance or 0+
+        booking_vehicle_data.tax or 0 +
+        booking_vehicle_data.paid or 0 +
+        booking_vehicle_data.dueCheck_out or 0+
+        booking_vehicle_data.fee or 0
+    )
             vehicledataList.append({
             "id": booking_vehicle_data.id,
             "name": booking_vehicle_data.name,
@@ -1141,7 +1149,9 @@ async def get_conformation(db: Session = Depends(get_db)):
             "locations": locations,
             "inclusion": inclusion_data,
             "t_c": t_c_data,
-            "drivers":driver_detail_data
+            "drivers":driver_detail_data,
+            "total":total_data
+            
         })
             print(vehicledataList)
     
