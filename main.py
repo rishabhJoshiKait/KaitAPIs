@@ -1123,7 +1123,6 @@ async def get_conformation(db: Session = Depends(get_db)):
             total_data = (
         int(booking_vehicle_data.car_rental) +
         int(booking_vehicle_data.excess_amount) +
-        int(booking_vehicle_data.fee) +
         int(booking_vehicle_data.Insurance)+
         int(booking_vehicle_data.tax)+
         int(booking_vehicle_data.paid)+
