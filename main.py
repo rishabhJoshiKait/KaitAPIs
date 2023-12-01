@@ -17,6 +17,8 @@ import httpx
 from pydantic.dataclasses import dataclass
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import urljoin
+import random
+import string
 
 app=FastAPI(title="Fleetrez B2C" ,description="For serving better quality of API without lagging")
 models.Base.metadata.create_all(bind=engine)
@@ -99,21 +101,21 @@ class modifysearchBase(BaseModel):
     drop_off_locations: str
     pick_up_date_time: datetime
     drop_off_date_time: datetime
-    vehicle_type:list
+    vehicle_type:Optional[list]
     driver_age:int
-    paymentType:list 
+    paymentType:Optional[list] 
 
 
 class vehicleBase(BaseModel):
     name:str
-    vehicle_type:str
+    vehicle_type:Optional[List[str]] = None
     location_name:str
     excess_amount:float
     local_fee:int
     price:float
     image:str
     rating:float
-    payment_method:str
+    payment_method:Optional[List[str]] = None
     rating_count:int
     acriss_id:UUID = uuid4()
     image:str
@@ -244,6 +246,10 @@ class cancellationBase(BaseModel):
     class Config:
         orm_mode=True
 
+class canclebooking(BaseModel):
+    booking_refernce:str
+    reason:str
+    charges:int
 # @dataclass
 # class modifiedData(BaseModel):
 #     list2:List[inclusionBase]
@@ -264,7 +270,7 @@ db_dependency = Annotated[Session,Depends(get_db)]
 #     db.add(db_user)
 #     db.commit()
 #     return db_user
-
+# @app.get()
 
 #locationSearch
 @app.post("/locationSearch")
@@ -463,7 +469,8 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "driver_detail":driver_data
         })
     
-    return {'vehicledata':vehicledataList} 
+    return {'vehicledata':vehicledataList}
+                        
 
 
 
@@ -591,6 +598,7 @@ async def vehicleSearch(db: Session = Depends(get_db)):
 #show all vehicle
 @app.get("/vehicleSearched",status_code=status.HTTP_200_OK,tags=["vehicle"])
 async def get_All(db: Session = Depends(get_db)):
+   
     vehicledata=db.query(models.vehicleClass).all()
     vehicledataList = []
     for vehicle in vehicledata:
@@ -949,7 +957,7 @@ async def get_All(db: Session = Depends(get_db)):
 
 # #display attribute by id
 @app.get("/attributeId/{attribute_id}",status_code=status.HTTP_200_OK,tags=["Attribute"])
-async def readattribute(attribute_id:int, db:db_dependency):
+async def readattribute(attribute_id:UUID, db:db_dependency):
     attribute=db.query(models.attributeClass).filter(models.attributeClass.id==attribute_id).first()   
     if attribute is None:
         raise HTTPException(status_code=404, detail='attribute not found')
@@ -957,7 +965,7 @@ async def readattribute(attribute_id:int, db:db_dependency):
 
 #update attribute
 @app.put("/attribute/{attribute_id}",status_code=status.HTTP_200_OK,response_model=attributeBase,tags=["Attribute"])
-async def update_attribute(attribute_id:int ,db:db_dependency,attribute:attributeBase):
+async def update_attribute(attribute_id:UUID ,db:db_dependency,attribute:attributeBase):
     try:
         db_attribute_update=db.query(models.attributeClass).filter(models.attributeClass.id==attribute_id).first()
         db_attribute_update.attribute_name=attribute.attribute_name
@@ -969,7 +977,7 @@ async def update_attribute(attribute_id:int ,db:db_dependency,attribute:attribut
 
 #delete attribute
 @app.delete("/attribute/{attribute_id}",status_code=status.HTTP_200_OK,tags=["Attribute"])
-async def delete_attribute(attribute_id:int ,db:db_dependency):
+async def delete_attribute(attribute_id:UUID ,db:db_dependency):
     db_attribute=db.query(models.attributeClass).filter(models.attributeClass.id==attribute_id).first()
     if db_attribute is None:
         raise HTTPException(status_code=404 , detail="attribute was not founded")
@@ -996,7 +1004,7 @@ async def get_All(db: Session = Depends(get_db)):
 
 # #display extra by id
 @app.get("/extraId/{extra_id}",status_code=status.HTTP_200_OK,tags=["Extra"])
-async def readextra(extra_id:int, db:db_dependency):
+async def readextra(extra_id:UUID, db:db_dependency):
     extra=db.query(models.extraClass).filter(models.extraClass.id==extra_id).first()   
     if extra is None:
         raise HTTPException(status_code=404, detail='extra not found')
@@ -1005,7 +1013,7 @@ async def readextra(extra_id:int, db:db_dependency):
 
 #update extra
 @app.put("/extra/{extra_id}",status_code=status.HTTP_200_OK,response_model=extraBase,tags=["Extra"])
-async def update_extra(extra_id:int ,db:db_dependency,extra:extraBase):
+async def update_extra(extra_id:UUID ,db:db_dependency,extra:extraBase):
     try:
         db_extra_update=db.query(models.extraClass).filter(models.extraClass.id==extra_id).first()
         db_extra_update.name=extra.name
@@ -1021,7 +1029,7 @@ async def update_extra(extra_id:int ,db:db_dependency,extra:extraBase):
 
 #delete EXTRA
 @app.delete("/extra/{extra_id}",status_code=status.HTTP_200_OK,tags=["Extra"])
-async def delete_extra(extra_id:int ,db:db_dependency):
+async def delete_extra(extra_id:UUID ,db:db_dependency):
     db_extra=db.query(models.extraClass).filter(models.extraClass.id==extra_id).first()
     if db_extra is None:
         raise HTTPException(status_code=404 , detail="extra was not founded")
@@ -1109,7 +1117,7 @@ async def get_conformation(db: Session = Depends(get_db)):
             response1= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
             response2=await client.get("https://fleetrez-api.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
             locationss=await client.get("https://fleetrez-api.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
-            response3=await client.get("https://fleetrez-api.onrender.com/driver_detail_latest")
+            response3=await client.get(driverurl)
             response4=await client.get("https://fleetrez-api.onrender.com/t_c/all")
             inclusion_data= response1.json()
             location1_data=response2.json()
@@ -1302,7 +1310,7 @@ async def get_All(db: Session = Depends(get_db)):
 #delete cancelalation_Charges
 @app.delete("/cancellation/{cancellation_id}",status_code=status.HTTP_200_OK,tags=["Cancellation"])
 async def delete_cancellation(cancellation_id:UUID ,db:db_dependency):
-    db_cancellation=db.query(models.cancellationClass).filter(models.cancellationClass.id==cancellation_id).first()
+    db_cancellation=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==cancellation_id).first()
     if db_cancellation is None:
         raise HTTPException(status_code=404 , detail="cancellation was not founded")
     db.delete(db_cancellation)
@@ -1482,3 +1490,12 @@ async def delete_r_t_c(r_t_c_id:UUID ,db:db_dependency):
     db.delete(db_r_t_c)
     db.commit()
     return db_r_t_c
+
+def id():
+    characters = string.digits
+    booking_reference = ''.join(random.choice(characters) for _ in range(8))
+    booking_id = booking_reference
+    print("Booking Reference ID:",booking_id)
+    return booking_id
+
+print('TST-',id())
