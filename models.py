@@ -33,8 +33,8 @@ class booking_vehicleClass(Base):
     pickup_Date=Column(DateTime)
     dropoff_Date=Column(DateTime)
     vehicle_type= Column(String(255))
-    excess_amount = Column(Float)
-    fee=Column(Float)
+    excess_amount = Column(BigInteger)
+    fee=Column(Integer)
     car_rental=Column(BigInteger)
     Insurance=Column(BigInteger)
     tax=Column(BigInteger)
@@ -43,7 +43,6 @@ class booking_vehicleClass(Base):
     rating_count=Column(Integer)
     rating=Column(Float)
     image = Column(String(1024))
-    total= Column(Integer)
     acriss_id = Column(UUID(as_uuid=True), ForeignKey("acriss.id"), nullable=True)
     t_cid= Column(UUID(as_uuid=True), ForeignKey("t_c.id"), nullable=True)
     inclusionid=Column(UUID(as_uuid=True), ForeignKey("inclusion.id"), nullable=True)
@@ -60,7 +59,7 @@ class inclusionClass(Base):
     __tablename__= 'inclusion'
 
     id= Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
-    name=Column(String(255))
+    name=Column(String(collation="utf8_general_ci"))
     vehicle =  relationship("vehicleClass", back_populates='inclusion')
     booking_vehicle=relationship("booking_vehicleClass")
 
@@ -79,13 +78,13 @@ class vehicleClass(Base):
     
     id =Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     name = Column(String(collation="utf8_general_ci"))
-    vehicle_type= Column(String(255))
+    vehicle_type= Column(String(255),nullable=True)
     excess_amount = Column(Float)
     local_fee=Column(Float)
     price=Column(Float)
     rating=Column(Float)
     rating_count=Column(Integer)
-    payment_method=Column(String(255))
+    payment_method=Column(String(255),nullable=True)
     image = Column(String(1024))
     location_name = Column(String(255))
     acriss_id = Column(UUID(as_uuid=True), ForeignKey("acriss.id"), nullable=True)
