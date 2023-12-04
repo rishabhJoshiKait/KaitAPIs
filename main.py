@@ -103,7 +103,8 @@ class modifysearchBase(BaseModel):
     drop_off_date_time: datetime
     vehicle_type:Optional[list]
     driver_age:int
-    paymentType:Optional[list] 
+    paymentType:Optional[list]
+    price:Optional[int] 
 
 
 class vehicleBase(BaseModel):
@@ -331,15 +332,18 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
     print(locationdata,"LocationData")
     vehicledataList = []
     for item in locationdata:
-        if location.vehicle_type and location.paymentType:
-            if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
-                vehicledataList.append(item)
-        elif location.vehicle_type:
-            if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
-                vehicledataList.append(item)
-        elif location.paymentType:
-            if any(v.lower() in item.payment_method.lower() for v in location.paymentType):
-                vehicledataList.append(item)
+        if item.price >= location.price:
+            if location.vehicle_type and location.paymentType and location.price:
+                if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
+                    vehicledataList.append(item)
+            elif location.vehicle_type:
+                if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
+                    vehicledataList.append(item)
+            elif location.paymentType:
+                if any(v.lower() in item.payment_method.lower() for v in location.paymentType):
+                    vehicledataList.append(item)
+        # elif location.price:
+        #     if any()
 
                 
         async with httpx.AsyncClient() as client:
@@ -1414,7 +1418,6 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
         "Insurance":booking_vehicle.Insurance,
         "tax":booking_vehicle.tax,
         "paid":booking_vehicle.paid,
-        "total":booking_vehicle.total,
         "Rating_count":booking_vehicle.rating_count,
         "image":booking_vehicle.image,
         "attributes":attributeData,
