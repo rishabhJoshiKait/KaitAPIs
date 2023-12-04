@@ -454,7 +454,6 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "excess_amount":bookingVehicledata.excess_amount,
             "car_rental":bookingVehicledata.car_rental,
             "extra":300,
-            "total":bookingVehicledata.total,
             "Insurance":bookingVehicledata.Insurance,
             "tax":bookingVehicledata.tax,
             "paid":bookingVehicledata.paid,
