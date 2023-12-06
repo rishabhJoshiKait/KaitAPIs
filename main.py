@@ -109,17 +109,16 @@ class modifysearchBase(BaseModel):
 
 class vehicleBase(BaseModel):
     name:str
-    vehicle_type:Optional[List[str]] = None
+    vehicle_type:str
     location_name:str
     excess_amount:float
     local_fee:int
     price:float
     image:str
     rating:float
-    payment_method:Optional[List[str]] = None
+    payment_method:str
     rating_count:int
     acriss_id:UUID = uuid4()
-    image:str
     attribute_id:UUID = uuid4()
     location_id:UUID = uuid4()
     vehicle_group_id:UUID = uuid4()
@@ -332,7 +331,6 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
     print(locationdata,"LocationData")
     vehicledataList = []
     for item in locationdata:
-        if item.price >= location.price:
             if location.vehicle_type and location.paymentType and location.price:
                 if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
                     vehicledataList.append(item)
@@ -346,7 +344,7 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
         #     if any()
 
                 
-        async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient() as client:
             response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
             response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
             response2= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
@@ -532,7 +530,7 @@ async def delete_acriss(acriss_id:UUID ,db:db_dependency):
 
 #update acriss
 @app.put("/acriss/{acriss_id}",status_code=status.HTTP_200_OK,response_model=AcrissBase,tags=["Acriss"])
-async def update_acriss(acriss_id:int ,db:db_dependency,acriss:AcrissBase):
+async def update_acriss(acriss_id:UUID ,db:db_dependency,acriss:AcrissBase):
     try:
         db_acriss_update=db.query(models.acrissClass).filter(models.acrissClass.id==acriss_id).first()
         db_acriss_update.name=acriss.name
