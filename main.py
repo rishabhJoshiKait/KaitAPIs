@@ -666,7 +666,6 @@ async def read_vehicle(vehicle_id:UUID, db:db_dependency):
 async def update_vehicle(vehicle_id:UUID ,db:db_dependency,vehicle:vehicleBase):
     try:
         db_vehcile_update=db.query(models.vehicleClass).filter(models.vehicleClass.id==vehicle_id).first()
-        db_vehcile_update.id=vehicle.id
         db_vehcile_update.name=vehicle.name
         db_vehcile_update.vehicle_type=vehicle.vehicle_type
         db_vehcile_update.excess_amount=vehicle.excess_amount
