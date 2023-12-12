@@ -35,6 +35,7 @@ class booking_vehicleClass(Base):
     vehicle_type= Column(String(255))
     excess_amount = Column(BigInteger)
     fee=Column(Integer)
+    total=Column(BigInteger)
     car_rental=Column(BigInteger)
     Insurance=Column(BigInteger)
     tax=Column(BigInteger)
