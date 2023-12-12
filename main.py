@@ -1183,16 +1183,27 @@ async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booki
         db_booking_vehicle_update.name=booking_vehicle.name
         db_booking_vehicle_update.booking_ref=booking_vehicle.booking_ref
         db_booking_vehicle_update.vehicle_type=booking_vehicle.vehicle_type
+        db_booking_vehicle_update.pickup_Date=booking_vehicle.pickup_Date
+        db_booking_vehicle_update.dropoff_Date=booking_vehicle.dropoff_Date
         db_booking_vehicle_update.excess_amount=booking_vehicle.excess_amount
         db_booking_vehicle_update.fee=booking_vehicle.fee
         db_booking_vehicle_update.rating=booking_vehicle.rating
         db_booking_vehicle_update.rating_count=booking_vehicle.rating_count
         db_booking_vehicle_update.image=booking_vehicle.image
+        total_data = (
+        int(booking_vehicle.car_rental) +
+        int(booking_vehicle.excess_amount) +
+        int(booking_vehicle.Insurance)+
+        int(booking_vehicle.tax)+
+        int(booking_vehicle.paid)+
+        int(booking_vehicle.dueCheck_out))
+        db_booking_vehicle_update.total=total_data
         db.add(db_booking_vehicle_update)
         db.commit()
         return db_booking_vehicle_update
     except:
         return HTTPException(status_code=404, detail="booking_vehicle not found")
+
 
 
 
