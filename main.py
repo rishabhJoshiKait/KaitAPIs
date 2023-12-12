@@ -1096,13 +1096,44 @@ async def delete_insurance(insurance_id:UUID ,db:db_dependency):
     return db_insurance
 
 
+def id():
+    characters = string.digits
+    booking_reference = ''.join(random.choice(characters) for _ in range(5))
+    booking_id = booking_reference
+    print("Booking Reference ID:",booking_id)
+    print('TST-'+booking_reference)
+    return booking_id
+
+id()
+
 # create booking_vehicle
 @app.post("/booking_vehicle",status_code=status.HTTP_201_CREATED,tags=["booking vehicle"])
 async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_dependency):
-    db_booking_vehicle = models.booking_vehicleClass(**booking_vehicle.dict())
+    db_booking_vehicle = models.booking_vehicleClass(
+        name=booking_vehicle.name,
+        booking_ref='TST-'+id(),
+        pickup_Date=booking_vehicle.pickup_Date,
+        dropoff_Date=booking_vehicle.dropoff_Date,
+        vehicle_type=booking_vehicle.vehicle_type,
+        excess_amount=booking_vehicle.excess_amount,
+        fee=booking_vehicle.fee,
+        rating=booking_vehicle.rating,
+        rating_count=booking_vehicle.rating_count,
+        image=booking_vehicle.image,
+        car_rental=booking_vehicle.car_rental,
+        Insurance=booking_vehicle.Insurance,
+        tax=booking_vehicle.tax,
+        paid=booking_vehicle.paid,
+        dueCheck_out=booking_vehicle.dueCheck_out,
+        acriss_id=booking_vehicle.acriss_id,
+        driver_detail_id=booking_vehicle.driver_detail_id,
+        t_cid=booking_vehicle.t_cid,
+        inclusionid=booking_vehicle.inclusionid,
+        locationid=booking_vehicle.locationid
+    )
     db.add(db_booking_vehicle)
     db.commit()
-    return {'status':'sucess', 'booking_vehicles':booking_vehicle}
+    return {'booking_vehicles':booking_vehicle}
 
 #show all booking_vehicle
 @app.get("/booking_vehicle/all",status_code=status.HTTP_200_OK,tags=["booking vehicle"])
@@ -1114,7 +1145,7 @@ async def get_All(db: Session = Depends(get_db)):
 @app.get("/booking_conformation",status_code=status.HTTP_200_OK)
 async def get_conformation(db: Session = Depends(get_db)):
     booking_vehicles=db.query(models.booking_vehicleClass).all()
-    booking_vehicle_data=booking_vehicles[-1]
+    booking_vehicle_data=booking_vehicles[-2]
     # tc=db.query(models.t_cClass).all()
     driverid=booking_vehicle_data.driver_detail_id
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
