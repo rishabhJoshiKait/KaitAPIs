@@ -1419,7 +1419,13 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     response_data = {"insurances": []}
     for key, value in insuranceData[0].items():
         response_data["insurances"].extend(value)
-
+     total_data = (
+        int(booking_vehicle.car_rental) +
+        int(booking_vehicle.excess_amount) +
+        int(booking_vehicle.Insurance)+
+        int(booking_vehicle.tax)+
+        int(booking_vehicle.paid)+
+        int(booking_vehicle.dueCheck_out))
     # print(locations.json())
     modifiedData.append({
         "id":booking_vehicle.id,
@@ -1433,6 +1439,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
         "Rating":booking_vehicle.rating,
         "car_rental":booking_vehicle.car_rental,
         "Insurance":booking_vehicle.Insurance,
+        "total":total_data,
         "tax":booking_vehicle.tax,
         "paid":booking_vehicle.paid,
         "Rating_count":booking_vehicle.rating_count,
