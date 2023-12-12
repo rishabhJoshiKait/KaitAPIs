@@ -446,6 +446,14 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
                 "location1":location1_data,
                 "location2":location2_data
             })
+        total_data = (
+        int(bookingVehicledata.car_rental) +
+        int(bookingVehicledata.excess_amount) +
+        int(bookingVehicledata.Insurance)+
+        int(bookingVehicledata.tax)+
+        int(bookingVehicledata.paid)+
+        int(bookingVehicledata.dueCheck_out)+
+        int(bookingVehicledata.fee))
         vehicledataList.append({
             "id":bookingVehicledata.id,
             "name":bookingVehicledata.name,
@@ -455,7 +463,7 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "vehicle_type":bookingVehicledata.vehicle_type,
             "excess_amount":bookingVehicledata.excess_amount,
             "car_rental":bookingVehicledata.car_rental,
-            "extra":300,
+            "total":total_data,
             "Insurance":bookingVehicledata.Insurance,
             "tax":bookingVehicledata.tax,
             "paid":bookingVehicledata.paid,
