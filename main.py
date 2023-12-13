@@ -182,7 +182,6 @@ class extraBase(BaseModel):
 
 class booking_vehicleBase(BaseModel):
     name:Optional[str] = None
-    booking_ref:Optional[str] = None
     pickup_Date:Optional[datetime] = None
     dropoff_Date:Optional[datetime] = None
     vehicle_type:Optional[str] = None
