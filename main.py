@@ -1278,6 +1278,7 @@ async def create_driver_detail(driver: driver_detailBase, db: db_dependency):
     db_driver = models.driverDetailClass(**driver.dict())
     db.add(db_driver)
     db.commit()
+    db.refresh(db_driver)
     return driver
 
 @app.get("/driver_detail_latest",status_code=status.HTTP_200_OK,tags=["Driver_Details"])
