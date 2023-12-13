@@ -2,7 +2,7 @@ import uuid
 from fastapi import FastAPI,HTTPException,Depends,status
 from fastapi.responses import JSONResponse,HTMLResponse
 from flask import jsonify
-from pydantic import BaseModel,validator
+from pydantic import BaseModel,validator,Field
 from typing import  List, Optional
 from typing_extensions import Annotated
 from typing import List, Optional
@@ -103,9 +103,15 @@ class modifysearchBase(BaseModel):
     drop_off_date_time: datetime
     vehicle_type:Optional[list]
     driver_age:int
+    gearType: Optional[list]
     paymentType:Optional[list]
     price:Optional[int] 
 
+
+class attributeBase(BaseModel):
+    attribute_name:str
+    class Config:
+        orm_mode=True
 
 class vehicleBase(BaseModel):
     name:str
@@ -127,6 +133,7 @@ class vehicleBase(BaseModel):
     class Config:
         orm_mode=True
 
+ 
 
 class locationBase(BaseModel):
     location_name:str
@@ -158,10 +165,6 @@ class rental_t_cBase(BaseModel):
         orm_mode=True
 
 
-class attributeBase(BaseModel):
-    attribute_name:str
-    class Config:
-        orm_mode=True
 
 class insuranceBase(BaseModel):
     name:Optional[str]
@@ -181,7 +184,7 @@ class extraBase(BaseModel):
         orm_mode=True
 
 class booking_vehicleBase(BaseModel):
-     name:Optional[str] = None
+    name:Optional[str] = None
     pickup_Date:datetime
     dropoff_Date:Optional[datetime] = None
     vehicle_type:Optional[str] = None
@@ -202,7 +205,6 @@ class booking_vehicleBase(BaseModel):
     locationid: Optional[UUID] = None  
     class Config:
         orm_mode=True
-
 
 class driver_detailBase(BaseModel):
     first_name:str
@@ -272,6 +274,12 @@ db_dependency = Annotated[Session,Depends(get_db)]
 #     return db_user
 # @app.get()
 
+#show all acriss
+@app.get("/vehicle_type/all",status_code=status.HTTP_200_OK,tags=["vehicle_type"])
+async def get_All(db: Session = Depends(get_db)):
+    vehicle_types=db.query(models.vehicleClass.vehicle_type).all()
+    return {'vehicle_type':vehicle_types}
+
 #locationSearch
 @app.post("/locationSearch")
 async def location_search(location: location_searchBase,db: Session = Depends(get_db)):
@@ -309,6 +317,7 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
             "payment_method": vehicle.payment_method,
             "excess_amount": vehicle.excess_amount,
             "vehicle_group": vehicle.vehicle_group_id,
+            "attribute_id":vehicle.attribute_id,
             # "location": location_data,
             "inclusion": inclusion_data,
             "attributes": attribute_data
@@ -316,11 +325,15 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
     
     return {'vehicledata':vehicledataList}
 
+
 #ModifylocationSearch
 @app.post("/modifylocationSearch")
 async def location_search(location: modifysearchBase,db: Session = Depends(get_db)):
     query = db.query(models.vehicleClass)
-
+    quer1= db.query(models.attributeClass)
+    attridata=quer1.all()
+    # print("names of attributs",attridata)
+    # print("attribute DAta",attridata)
     if location:
         query = query.filter(func.lower(models.vehicleClass.location_name) == func.lower(location.pick_up_locations))
         locationdata= query.all()
@@ -340,6 +353,9 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
             elif location.paymentType:
                 if any(v.lower() in item.payment_method.lower() for v in location.paymentType):
                     vehicledataList.append(item)
+            elif location.gearType:
+                if any(v.lower() in models.attributeClass.lower() for v in location.gearType):
+                    vehicledataList.append(item)
         # elif location.price:
         #     if any()
 
@@ -348,7 +364,6 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
             response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
             response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
             response2= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
-            # response3=await client.get("https://fleetrez-api.onrender.com/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -411,10 +426,18 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     if managebooking:
         query = query.filter(models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     bookingVehicledata= query.first()
+    # if models.booking_vehicleClass.booking_ref != managebooking.email :
+    #     raise HTTPException(status_code=404, detail="bookings not found with not of booking reference")
+    # elif drivers != managebooking.booking_reference :
+    #     raise HTTPException(status_code=404, detail="bookings not found with not of email")
     driverid=bookingVehicledata.driver_detail_id
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
+    # if models.booking_vehicleClass.booking_ref != managebooking.email :
+    #     raise HTTPException(status_code=404, detail="bookings not found with not of booking reference")
+    # elif drivers != managebooking.booking_reference :
+    #     raise HTTPException(status_code=404, detail="bookings not found with not of email")
     async with httpx.AsyncClient() as client:
         responsess=await client.get(driverurl)
         driver_data=responsess.json()
@@ -424,8 +447,6 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     if managebooking:
         query = query.filter(models.driverDetailClass.email == managebooking.email and models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     bookingVehicledata= query.first()
-    if bookingVehicledata is None:
-        raise HTTPException(status_code=404, detail="bookings not found")
     vehicledataList = []
     locations=[]
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
@@ -452,8 +473,7 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
         int(bookingVehicledata.Insurance)+
         int(bookingVehicledata.tax)+
         int(bookingVehicledata.paid)+
-        int(bookingVehicledata.dueCheck_out)+
-        int(bookingVehicledata.fee))
+        int(bookingVehicledata.dueCheck_out))
         vehicledataList.append({
             "id":bookingVehicledata.id,
             "name":bookingVehicledata.name,
@@ -463,13 +483,12 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "vehicle_type":bookingVehicledata.vehicle_type,
             "excess_amount":bookingVehicledata.excess_amount,
             "car_rental":bookingVehicledata.car_rental,
-            "total":total_data,
             "Insurance":bookingVehicledata.Insurance,
             "tax":bookingVehicledata.tax,
             "paid":bookingVehicledata.paid,
-            "extra":100,
             "Due_at_Checkout":bookingVehicledata.dueCheck_out,
             "Fee":bookingVehicledata.fee,
+            "total":total_data,
             "Rating":bookingVehicledata.rating,
             "Rating_count":bookingVehicledata.rating_count,
             "image":bookingVehicledata.image,
@@ -478,6 +497,7 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "Rental_t_c": t_cdata,
             "driver_detail":driver_data
         })
+        
     
     return {'vehicledata':vehicledataList}
                         
@@ -510,20 +530,7 @@ async def get_All(db: Session = Depends(get_db)):
     acriss_data=db.query(models.acrissClass).all()
     return {'status':'sucess', 'acriss':acriss_data}
 
-# @app.get("/acriss/{acriss_id}")
-# def get_acriss_with_booking_vehicle(acriss_id: int, db: Session = Depends(get_db)):
-#     acriss = db.query(models.acrissClass).filter(models.acrissClass.id == acriss_id).first()
-#     if acriss is None:
-#         raise HTTPException(status_code=404, detail="Acriss not found")
-#     return {"acriss": acriss.name, "booking_vehicles": acriss.booking_vehicle}
 
-# #show all acriss
-# @app.get("/vehicles/all",status_code=status.HTTP_200_OK,tags=["vehicle"])
-# async def get_All(db: Session = Depends(get_db)):
-#     vehicle_data=db.query(models.vehicleClass).all()
-#     for vehicle in vehicle_data:
-#         vehicle.acriss
-#     return vehicle.acriss
 
 
 
@@ -680,6 +687,7 @@ async def update_vehicle(vehicle_id:UUID ,db:db_dependency,vehicle:vehicleBase):
         db_vehcile_update.excess_amount=vehicle.excess_amount
         db_vehcile_update.local_fee=vehicle.local_fee
         db_vehcile_update.price=vehicle.price
+        # db_vehcile_update.tax=vehicle.tax
         db_vehcile_update.image=vehicle.image
         db_vehcile_update.rating=vehicle.rating
         db_vehcile_update.payment_method=vehicle.payment_method
@@ -1095,7 +1103,6 @@ async def delete_insurance(insurance_id:UUID ,db:db_dependency):
     db.commit()
     return db_insurance
 
-
 def id():
     characters = string.digits
     booking_reference = ''.join(random.choice(characters) for _ in range(5))
@@ -1145,6 +1152,7 @@ async def get_All(db: Session = Depends(get_db)):
 @app.get("/booking_conformation",status_code=status.HTTP_200_OK)
 async def get_conformation(db: Session = Depends(get_db)):
     booking_vehicles=db.query(models.booking_vehicleClass).all()
+    vehicle_data=db.query(models.vehicleClass).all()
     booking_vehicle_data=booking_vehicles[-2]
     # tc=db.query(models.t_cClass).all()
     driverid=booking_vehicle_data.driver_detail_id
@@ -1243,7 +1251,6 @@ async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booki
         return db_booking_vehicle_update
     except:
         return HTTPException(status_code=404, detail="booking_vehicle not found")
-
 
 
 
@@ -1548,11 +1555,10 @@ async def delete_r_t_c(r_t_c_id:UUID ,db:db_dependency):
     db.commit()
     return db_r_t_c
 
-def id():
-    characters = string.digits
-    booking_reference = ''.join(random.choice(characters) for _ in range(8))
-    booking_id = booking_reference
-    print("Booking Reference ID:",booking_id)
-    return booking_id
 
-print('TST-',id())
+
+#show all vehile_group
+@app.get("/vehicle_attribute",status_code=status.HTTP_200_OK,tags=["Vehicle Atribute"])
+async def get_All(db: Session = Depends(get_db)):
+    vehicle_attribute_data=db.query(models.VehicleAttribute).all()
+    return {'status':'sucess', 'vehicle_groups':vehicle_attribute_data}
