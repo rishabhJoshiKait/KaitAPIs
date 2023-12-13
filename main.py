@@ -1275,11 +1275,28 @@ async def delete_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency):
 # create driver_detail
 @app.post("/driver_Detail",status_code=status.HTTP_201_CREATED,tags=["Driver_Details"])
 async def create_driver_detail(driver: driver_detailBase, db: db_dependency):
-    db_driver = models.driverDetailClass(**driver.dict())
-    db.add(db_driver)
+    db_driver = models.driverDetailClass(
+        
+        first_name=driver.first_name,
+        last_name=driver.last_name,
+        title= driver.title,
+        email= driver.email,
+        phone_code= driver.phone_code,
+        phone_number= driver.phone_number,
+        driver_age= driver.driver_age,
+        address= driver.address,
+        city= driver.city,
+        postal_code= driver.postal_code,
+        country= driver.country,
+        remark= driver.remark,
+        insurance_id= driver.insurance_id,
+        extra_id= driver.extra_id
+    )
+    value=db.add(db_driver)
+    print(value)
     db.commit()
     db.refresh(db_driver)
-    return driver
+    return db_driver
 
 @app.get("/driver_detail_latest",status_code=status.HTTP_200_OK,tags=["Driver_Details"])
 async def get_All(db: Session = Depends(get_db)):
