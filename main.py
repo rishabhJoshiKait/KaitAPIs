@@ -181,8 +181,8 @@ class extraBase(BaseModel):
         orm_mode=True
 
 class booking_vehicleBase(BaseModel):
-    name:Optional[str] = None
-    pickup_Date:Optional[datetime] = None
+     name:Optional[str] = None
+    pickup_Date:datetime
     dropoff_Date:Optional[datetime] = None
     vehicle_type:Optional[str] = None
     excess_amount:Optional[int] = None
@@ -195,13 +195,14 @@ class booking_vehicleBase(BaseModel):
     tax:Optional[int] = None
     paid:Optional[int] = None
     dueCheck_out:Optional[int] = None
-    acriss_id:UUID = uuid4()
-    driver_detail_id:UUID = uuid4()
-    t_cid:UUID = uuid4()
-    inclusionid:UUID = uuid4()
-    locationid:UUID = uuid4()
+    acriss_id: Optional[UUID] = None  # Updated to Optional[UUID]
+    driver_detail_id: Optional[UUID] = None  # Updated to Optional[UUID]
+    t_cid: Optional[UUID] = None  # Updated to Optional[UUID]
+    inclusionid: Optional[UUID] = None  # Updated to Optional[UUID]
+    locationid: Optional[UUID] = None  
     class Config:
         orm_mode=True
+
 
 class driver_detailBase(BaseModel):
     first_name:str
