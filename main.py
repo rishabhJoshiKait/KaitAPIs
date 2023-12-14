@@ -131,6 +131,7 @@ class vehicleBase(BaseModel):
     location_name:str
     excess_amount:float
     local_fee:int
+    tax:int
     price:float
     image:str
     rating:float
