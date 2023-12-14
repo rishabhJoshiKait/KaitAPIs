@@ -54,18 +54,18 @@ app.add_middleware(
 #     class Config:
 #         orm_mode=True
 
-new_column_name = "description"
-alter_table_query = f"ALTER TABLE location ADD COLUMN {new_column_name} VARCHAR(255);"
+# new_column_name = "description"
+# alter_table_query = f"ALTER TABLE location ADD COLUMN {new_column_name} VARCHAR(255);"
 
 
-@app.on_event("startup")
-def on_startup():
-    db = SessionLocal()
-    try:
-        db.execute(text(alter_table_query))
-        db.commit()
-    finally:
-        db.close()
+# @app.on_event("startup")
+# def on_startup():
+#     db = SessionLocal()
+#     try:
+#         db.execute(text(alter_table_query))
+#         db.commit()
+#     finally:
+#         db.close()
 
 date_str = "2023-10-11T15:30:00"
 class location_searchBase(BaseModel):
