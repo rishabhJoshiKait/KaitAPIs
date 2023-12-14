@@ -151,6 +151,7 @@ class vehicleBase(BaseModel):
 class locationBase(BaseModel):
     location_name:str
     image:str
+    description:str
     days:UUID = uuid4()
     class Config:
         orm_mode=True
