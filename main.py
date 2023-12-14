@@ -714,6 +714,13 @@ async def get_All(db: Session = Depends(get_db)):
     locations_data=db.query(models.locationClass).all()
     return {'locations':locations_data}
 
+
+#show most common places
+@app.get("/mostCommanPlaces",status_code=status.HTTP_200_OK)
+async def get_All(db: Session = Depends(get_db)):
+    locationsdata=db.query(models.locationClass.location_name)[:5]
+    return locationsdata
+
 # #display location by id
 @app.get("/locationById/{location_id}",status_code=status.HTTP_200_OK,tags=["Locations"])
 async def read_vehicle(location_id:UUID, db:db_dependency):
