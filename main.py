@@ -133,7 +133,6 @@ class vehicleBase(BaseModel):
     local_fee:int
     price:float
     image:str
-    extra:str
     rating:float
     payment_method:str
     rating_count:int
