@@ -11,7 +11,7 @@ from uuid import uuid4, UUID
 from datetime import date, datetime, time, timedelta
 from database import engine,SessionLocal
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func,text
 from typing import List
 import httpx
 from pydantic.dataclasses import dataclass
@@ -54,7 +54,19 @@ app.add_middleware(
 #     class Config:
 #         orm_mode=True
 
-        
+new_column_name = "description"
+alter_table_query = f"ALTER TABLE location ADD COLUMN {new_column_name} VARCHAR(255);"
+
+
+# @app.on_event("startup")
+# def on_startup():
+#     db = SessionLocal()
+#     try:
+#         db.execute(text(alter_table_query))
+#         db.commit()
+#     finally:
+#         db.close()
+
 date_str = "2023-10-11T15:30:00"
 class location_searchBase(BaseModel):
     pick_up_locations: str
@@ -121,6 +133,7 @@ class vehicleBase(BaseModel):
     local_fee:int
     price:float
     image:str
+    extra:str
     rating:float
     payment_method:str
     rating_count:int
@@ -138,6 +151,7 @@ class vehicleBase(BaseModel):
 class locationBase(BaseModel):
     location_name:str
     image:str
+    description:str
     days:UUID = uuid4()
     class Config:
         orm_mode=True
@@ -706,6 +720,7 @@ async def create_location(location: locationBase, db: db_dependency):
     db_location = models.locationClass(**location.dict())
     db.add(db_location)
     db.commit()
+    db.refresh(db_location)
     return location
 
 #show all loctaions
@@ -715,10 +730,22 @@ async def get_All(db: Session = Depends(get_db)):
     return {'locations':locations_data}
 
 
+#show all some locations
+def get_locations(db:Session=Depends(get_db),skip: int = 0, limit: int = 10):
+    locations = db.query(models.locationClass).offset(skip).limit(limit).all()
+    return locations
+
+@app.get("/Mostlocations/", response_model=list[locationBase])
+def list_locations(skip: int = 0, limit: int = 10):
+    db = SessionLocal()
+    locations = get_locations(db, skip=0, limit=5)
+    db.close()
+    return locations
+
 #show most common places
 @app.get("/mostCommanPlaces",status_code=status.HTTP_200_OK)
 async def get_All(db: Session = Depends(get_db)):
-    locationsdata=db.query(models.locationClass.location_name)[:5]
+    locationsdata=db.query(models.locationClass.location_name,models.locationClass.image,models.locationClass.description)[:5]
     return locationsdata
 
 # #display location by id
@@ -756,6 +783,7 @@ async def update_location(location_id:UUID ,db:db_dependency,location:locationBa
         db_location_update=db.query(models.locationClass).filter(models.locationClass.id==location_id).first()
         db_location_update.location_name=location.location_name
         db_location_update.days=location.days
+        db_location_update.description=location.description
         db_location_update.image=location.image
         db.add(db_location_update)
         db.commit()
@@ -1278,6 +1306,24 @@ async def delete_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency):
     db.commit()
     return booking_vehicle_id 
 
+class driverRequest(BaseModel):
+    id:UUID = uuid4()
+    first_name:str
+    last_name:str
+    title:str
+    email:str
+    phone_code:str
+    phone_number:int
+    driver_age:int
+    address:Optional[str]
+    city:Optional[str]
+    postal_code:Optional[str]
+    country:Optional[str]
+    remark:Optional[str]
+    insurance_id:Optional[UUID] = None
+    extra_id:Optional[UUID] = None
+    class Config:
+        orm_mode=True
 
 # create driver_detail
 @app.post("/driver_Detail",status_code=status.HTTP_201_CREATED,tags=["Driver_Details"])
@@ -1583,7 +1629,7 @@ async def delete_r_t_c(r_t_c_id:UUID ,db:db_dependency):
 
 
 #show all vehile_group
-@app.get("/vehicle_attribute",status_code=status.HTTP_200_OK,tags=["Vehicle Atribute"])
+@app.get("/vehicle_attributePerVehicle",status_code=status.HTTP_200_OK,tags=["Vehicle Atribute"])
 async def get_All(db: Session = Depends(get_db)):
-    vehicle_attribute_data=db.query(models.VehicleAttribute).all()
-    return {'status':'sucess', 'vehicle_groups':vehicle_attribute_data}
+    vehicle_attribute_data=db.query(models.attributeClass.attribute_name)[:5]
+    return {'status':'sucess', 'vehicle_attributes':vehicle_attribute_data}
