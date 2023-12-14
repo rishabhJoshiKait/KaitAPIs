@@ -101,17 +101,19 @@ class vehicleClass(Base):
     category=relationship("categoryClass", back_populates='vehicle')
     inclusion=relationship("inclusionClass")
     
-#create LcationTable
 class locationClass(Base):
     __tablename__='location'
 
     id= Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     location_name=Column(String(255))
     image=Column(String(255))
+    description=Column(String(255))
     days = Column(UUID(as_uuid=True), ForeignKey("days.id"), nullable=True)
     day_relation =  relationship("daysClass")
     vehicle =  relationship("vehicleClass", back_populates='location')
     booking_vehicle=relationship("booking_vehicleClass")
+
+
 
 class daysClass(Base):
     __tablename__='days'
