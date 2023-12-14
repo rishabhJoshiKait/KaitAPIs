@@ -442,29 +442,22 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     if managebooking:
         query = query.filter(models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     bookingVehicledata= query.first()
-    # if models.booking_vehicleClass.booking_ref != managebooking.email :
-    #     raise HTTPException(status_code=404, detail="bookings not found with not of booking reference")
-    # elif drivers != managebooking.booking_reference :
-    #     raise HTTPException(status_code=404, detail="bookings not found with not of email")
+
+    if bookingVehicledata is  None:
+        raise HTTPException(status_code=404, detail="Booking not found")
     driverid=bookingVehicledata.driver_detail_id
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
-    # if models.booking_vehicleClass.booking_ref != managebooking.email :
-    #     raise HTTPException(status_code=404, detail="bookings not found with not of booking reference")
-    # elif drivers != managebooking.booking_reference :
-    #     raise HTTPException(status_code=404, detail="bookings not found with not of email")
-    async with httpx.AsyncClient() as client:
-        responsess=await client.get(driverurl)
-        driver_data=responsess.json()
-        drivers=driver_data['driver_detail']['email']
-        print("drivers data",drivers)
-    query = query.filter(drivers == managebooking.email and models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     if managebooking:
         query = query.filter(models.driverDetailClass.email == managebooking.email and models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     bookingVehicledata= query.first()
     vehicledataList = []
     locations=[]
+
+    
+    
+    print("id",driverurl)
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
