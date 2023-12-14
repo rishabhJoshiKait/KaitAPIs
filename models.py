@@ -108,6 +108,7 @@ class locationClass(Base):
     id= Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     location_name=Column(String(255))
     image=Column(String(255))
+    desription=Column(String(255))
     days = Column(UUID(as_uuid=True), ForeignKey("days.id"), nullable=True)
     day_relation =  relationship("daysClass")
     vehicle =  relationship("vehicleClass", back_populates='location')
