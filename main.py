@@ -735,12 +735,12 @@ def get_locations(db:Session=Depends(get_db),skip: int = 0, limit: int = 10):
     locations = db.query(models.locationClass).offset(skip).limit(limit).all()
     return locations
 
-@app.get("/Mostlocations/", response_model=list[locationBase])
-def list_locations(skip: int = 0, limit: int = 10):
-    db = SessionLocal()
-    locations = get_locations(db, skip=0, limit=5)
-    db.close()
-    return locations
+# @app.get("/Mostlocations/", response_model=list[locationBase])
+# def list_locations(skip: int = 0, limit: int = 10):
+#     db = SessionLocal()
+#     locations = get_locations(db, skip=0, limit=5)
+#     db.close()
+#     return locations
 
 #show most common places
 @app.get("/mostCommanPlaces",status_code=status.HTTP_200_OK)
