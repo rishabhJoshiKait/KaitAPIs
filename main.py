@@ -204,7 +204,7 @@ class booking_vehicleBase(BaseModel):
     vehicle_type:Optional[str] = None
     excess_amount:Optional[int] = None
     fee:Optional[int] = None
-    status:bool=false
+    status:bool = None
     rating:Optional[float] = None
     rating_count:Optional[int] = None
     image:Optional[str] = None
@@ -253,7 +253,6 @@ class daysBase(BaseModel):
         orm_mode=True
 
 class modifybookings(BaseModel):
-    booking_id:UUID = uuid4()
     status:bool
 
 class vehicle_categoryBase(BaseModel):
@@ -441,18 +440,18 @@ async def vehicleCategory(cvehicle: categoryVehicle,db:Session=Depends(get_db)):
     print(cataegory_data)
     return {'vehicledata':vehicledataList}
 
-#update booking_vehicle
-@app.put("/modifyBooking/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=modifybookings,tags=["booking vehicle"])
-async def modifyStatus(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:modifybookings):
-    try:
-        db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
-        db_booking_vehicle_update.status=booking_vehicle.status
-        db.add(db_booking_vehicle_update)
-        db.commit()
-        return db_booking_vehicle_update
-    except:
-        return HTTPException(status_code=404, detail="booking_vehicle not found")
-
+# #update ModifyBookings
+# #update booking_vehicle
+# @app.put("/booking_modify/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=modifybookings,tags=["booking vehicle"])
+# async def update_booking_status(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:modifybookings):
+#     try:
+#         db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id)
+#         db_booking_vehicle_update.status=booking_vehicle.status
+#         db.add(db_booking_vehicle_update)
+#         db.commit()
+#         return db_booking_vehicle_update
+#     except:
+#         return HTTPException(status_code=404, detail="booking_vehicle not found")
 
 
 @app.post("/managebooking")
@@ -1166,6 +1165,10 @@ def id():
 
 id()
 
+def some_function() -> bool:
+    # Your logic to determine the boolean value
+    return False
+
 # create booking_vehicle
 @app.post("/booking_vehicle",status_code=status.HTTP_201_CREATED,tags=["booking vehicle"])
 async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_dependency):
@@ -1178,12 +1181,13 @@ async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_de
         vehicle_type=booking_vehicle.vehicle_type,
         excess_amount=booking_vehicle.excess_amount,
         fee=booking_vehicle.fee,
+        tax=booking_vehicle.tax,
         rating=booking_vehicle.rating,
         rating_count=booking_vehicle.rating_count,
         image=booking_vehicle.image,
         car_rental=booking_vehicle.car_rental,
         Insurance=booking_vehicle.Insurance,
-        tax=booking_vehicle.tax,
+        status=some_function(),
         paid=booking_vehicle.paid,
         dueCheck_out=booking_vehicle.dueCheck_out,
         acriss_id=booking_vehicle.acriss_id,
@@ -1203,6 +1207,10 @@ async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_de
 async def get_All(db: Session = Depends(get_db)):
     booking_vehicle_data=db.query(models.booking_vehicleClass).all()
     return {'booking_vehicle':booking_vehicle_data}
+
+def get_latest_created_item(db):
+    latest_item = db.query(models.booking_vehicleClass).order_by(models.booking_vehicleClass.id.desc()).first()
+    return latest_item
 
 #show all booking_vehicle
 @app.get("/booking_conformation",status_code=status.HTTP_200_OK)
@@ -1290,6 +1298,7 @@ async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booki
         return db_booking_vehicle_update
     except:
         return HTTPException(status_code=404, detail="booking_vehicle not found")
+
 
 
 
