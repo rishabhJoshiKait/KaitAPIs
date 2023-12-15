@@ -31,6 +31,8 @@ class booking_vehicleClass(Base):
     name = Column(String(255))
     booking_ref=Column(String(255))
     pickup_Date=Column(DateTime)
+    pick_up_locations=Column(String(255))
+    drop_off_locations=Column(String(255))
     dropoff_Date=Column(DateTime)
     vehicle_type= Column(String(255))
     excess_amount = Column(BigInteger)
