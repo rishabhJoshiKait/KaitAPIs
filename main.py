@@ -54,20 +54,18 @@ app.add_middleware(
 #     class Config:
 #         orm_mode=True
 
-# new_column_name = "pick_up_locations",
-new_column_name2 = "drop_off_locations"
-alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name2} VARCHAR(255);"
+# new_column_name = "pick_up_locations"
+# alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name} VARCHAR(255);"
 
 
-@app.on_event("startup")
-def on_startup():
-    db = SessionLocal()
-    try:
-        db.execute(text(alter_table_query))
-        db.commit()
-    finally:
-        db.close()
-
+# @app.on_event("startup")
+# def on_startup():
+#     db = SessionLocal()
+#     try:
+#         db.execute(text(alter_table_query))
+#         db.commit()
+#     finally:
+#         db.close()
 
 date_str = "2023-10-11T15:30:00"
 class location_searchBase(BaseModel):
@@ -202,6 +200,8 @@ class extraBase(BaseModel):
 class booking_vehicleBase(BaseModel):
     name:Optional[str] = None
     pickup_Date:Optional[datetime] = None
+    pick_up_locations:Optional[str] = None
+    drop_off_locations:Optional[str] = None
     dropoff_Date:Optional[datetime] = None
     vehicle_type:Optional[str] = None
     excess_amount:Optional[int] = None
@@ -656,7 +656,6 @@ async def get_All(db: Session = Depends(get_db)):
             response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
             response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
             response2= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
-            # response3=await client.get("https://fleetrez-api.onrender.com/locationById/1")
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
@@ -754,12 +753,7 @@ def get_locations(db:Session=Depends(get_db),skip: int = 0, limit: int = 10):
     locations = db.query(models.locationClass).offset(skip).limit(limit).all()
     return locations
 
-# @app.get("/Mostlocations/", response_model=list[locationBase])
-# def list_locations(skip: int = 0, limit: int = 10):
-#     db = SessionLocal()
-#     locations = get_locations(db, skip=0, limit=5)
-#     db.close()
-#     return locations
+
 
 #show most common places
 @app.get("/mostCommanPlaces",status_code=status.HTTP_200_OK)
@@ -1180,6 +1174,8 @@ async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_de
         booking_ref='TST-'+id(),
         pickup_Date=booking_vehicle.pickup_Date,
         dropoff_Date=booking_vehicle.dropoff_Date,
+        pick_up_locations=booking_vehicle.pick_up_locations,
+        drop_off_locations=booking_vehicle.drop_off_locations,
         vehicle_type=booking_vehicle.vehicle_type,
         excess_amount=booking_vehicle.excess_amount,
         fee=booking_vehicle.fee,
@@ -1267,7 +1263,7 @@ async def get_conformation(db: Session = Depends(get_db)):
             "rating": booking_vehicle_data.rating,
             "rating_count":booking_vehicle_data.rating_count,
             "image":booking_vehicle_data.image,
-            "locations": locations,
+            # "locations": locations,
             "inclusion": inclusion_data,
             "t_c": t_c_data,
             "drivers":driver_detail_data,
