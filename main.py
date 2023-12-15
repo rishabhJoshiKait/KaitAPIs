@@ -54,9 +54,9 @@ app.add_middleware(
 #     class Config:
 #         orm_mode=True
 
-new_column_name = "pick_up_locations",
-new_column_name = "drop_off_locations"
-alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name} VARCHAR(255),{drop_off_locations} VARCHAR(255);"
+# new_column_name = "pick_up_locations",
+new_column_name2 = "drop_off_locations"
+alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name2} VARCHAR(255);"
 
 
 @app.on_event("startup")
