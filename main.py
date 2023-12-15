@@ -54,18 +54,18 @@ app.add_middleware(
 #     class Config:
 #         orm_mode=True
 
-new_column_name = "status"
-alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name} bool;"
+# new_column_name = "status"
+# alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name} bool;"
 
 
-@app.on_event("startup")
-def on_startup():
-    db = SessionLocal()
-    try:
-        db.execute(text(alter_table_query))
-        db.commit()
-    finally:
-        db.close()
+# @app.on_event("startup")
+# def on_startup():
+#     db = SessionLocal()
+#     try:
+#         db.execute(text(alter_table_query))
+#         db.commit()
+#     finally:
+#         db.close()
 
 date_str = "2023-10-11T15:30:00"
 class location_searchBase(BaseModel):
@@ -752,12 +752,12 @@ def get_locations(db:Session=Depends(get_db),skip: int = 0, limit: int = 10):
     locations = db.query(models.locationClass).offset(skip).limit(limit).all()
     return locations
 
-@app.get("/Mostlocations/", response_model=list[locationBase])
-def list_locations(skip: int = 0, limit: int = 10):
-    db = SessionLocal()
-    locations = get_locations(db, skip=0, limit=5)
-    db.close()
-    return locations
+# @app.get("/Mostlocations/", response_model=list[locationBase])
+# def list_locations(skip: int = 0, limit: int = 10):
+#     db = SessionLocal()
+#     locations = get_locations(db, skip=0, limit=5)
+#     db.close()
+#     return locations
 
 #show most common places
 @app.get("/mostCommanPlaces",status_code=status.HTTP_200_OK)
