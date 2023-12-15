@@ -38,6 +38,7 @@ class booking_vehicleClass(Base):
     total=Column(BigInteger)
     car_rental=Column(BigInteger)
     Insurance=Column(BigInteger)
+    status=Column(Boolean)
     tax=Column(BigInteger)
     paid=Column(BigInteger)
     dueCheck_out=Column(BigInteger)
