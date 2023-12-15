@@ -54,18 +54,20 @@ app.add_middleware(
 #     class Config:
 #         orm_mode=True
 
-# new_column_name = "status"
-# alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name} bool;"
+new_column_name = "pick_up_locations",
+new_column_name = "drop_off_locations"
+alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name} VARCHAR(255),{drop_off_locations} VARCHAR(255);"
 
 
-# @app.on_event("startup")
-# def on_startup():
-#     db = SessionLocal()
-#     try:
-#         db.execute(text(alter_table_query))
-#         db.commit()
-#     finally:
-#         db.close()
+@app.on_event("startup")
+def on_startup():
+    db = SessionLocal()
+    try:
+        db.execute(text(alter_table_query))
+        db.commit()
+    finally:
+        db.close()
+
 
 date_str = "2023-10-11T15:30:00"
 class location_searchBase(BaseModel):
