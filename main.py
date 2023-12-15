@@ -199,11 +199,12 @@ class extraBase(BaseModel):
 
 class booking_vehicleBase(BaseModel):
     name:Optional[str] = None
-    pickup_Date:datetime
+    pickup_Date:Optional[datetime] = None
     dropoff_Date:Optional[datetime] = None
     vehicle_type:Optional[str] = None
     excess_amount:Optional[int] = None
     fee:Optional[int] = None
+    status:bool
     rating:Optional[float] = None
     rating_count:Optional[int] = None
     image:Optional[str] = None
@@ -1283,30 +1284,12 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
 async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:booking_vehicleBase):
     try:
         db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
-        db_booking_vehicle_update.name=booking_vehicle.name
-        db_booking_vehicle_update.booking_ref=booking_vehicle.booking_ref
-        db_booking_vehicle_update.vehicle_type=booking_vehicle.vehicle_type
-        db_booking_vehicle_update.pickup_Date=booking_vehicle.pickup_Date
-        db_booking_vehicle_update.dropoff_Date=booking_vehicle.dropoff_Date
-        db_booking_vehicle_update.excess_amount=booking_vehicle.excess_amount
-        db_booking_vehicle_update.fee=booking_vehicle.fee
-        db_booking_vehicle_update.rating=booking_vehicle.rating
-        db_booking_vehicle_update.rating_count=booking_vehicle.rating_count
-        db_booking_vehicle_update.image=booking_vehicle.image
-        total_data = (
-        int(booking_vehicle.car_rental) +
-        int(booking_vehicle.excess_amount) +
-        int(booking_vehicle.Insurance)+
-        int(booking_vehicle.tax)+
-        int(booking_vehicle.paid)+
-        int(booking_vehicle.dueCheck_out))
-        db_booking_vehicle_update.total=total_data
+        db_booking_vehicle_update.status=booking_vehicle.status
         db.add(db_booking_vehicle_update)
         db.commit()
         return db_booking_vehicle_update
     except:
         return HTTPException(status_code=404, detail="booking_vehicle not found")
-
 
 
 
