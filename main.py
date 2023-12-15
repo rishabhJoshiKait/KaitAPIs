@@ -1168,6 +1168,7 @@ id()
 # create booking_vehicle
 @app.post("/booking_vehicle",status_code=status.HTTP_201_CREATED,tags=["booking vehicle"])
 async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_dependency):
+    last_data=[]
     db_booking_vehicle = models.booking_vehicleClass(
         name=booking_vehicle.name,
         booking_ref='TST-'+id(),
@@ -1192,7 +1193,9 @@ async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_de
     )
     db.add(db_booking_vehicle)
     db.commit()
-    return {'booking_vehicles':booking_vehicle}
+    db.refresh(db_booking_vehicle)
+    last_data.append(db_booking_vehicle)
+    return {'booking_vehicles':last_data}
 
 #show all booking_vehicle
 @app.get("/booking_vehicle/all",status_code=status.HTTP_200_OK,tags=["booking vehicle"])
