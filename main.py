@@ -54,18 +54,18 @@ app.add_middleware(
 #     class Config:
 #         orm_mode=True
 
-# new_column_name = "description"
-# alter_table_query = f"ALTER TABLE location ADD COLUMN {new_column_name} VARCHAR(255);"
+new_column_name = "status"
+alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name} bool;"
 
 
-# @app.on_event("startup")
-# def on_startup():
-#     db = SessionLocal()
-#     try:
-#         db.execute(text(alter_table_query))
-#         db.commit()
-#     finally:
-#         db.close()
+@app.on_event("startup")
+def on_startup():
+    db = SessionLocal()
+    try:
+        db.execute(text(alter_table_query))
+        db.commit()
+    finally:
+        db.close()
 
 date_str = "2023-10-11T15:30:00"
 class location_searchBase(BaseModel):
@@ -102,11 +102,11 @@ class AcrissBase(BaseModel):
         orm_mode=True
 
 
-class locationBase(BaseModel):
-    location_name:str
-    days:UUID = uuid4()
-    class Config:
-        orm_mode=True
+# class locationBase(BaseModel):
+#     location_name:str
+#     days:UUID = uuid4()
+#     class Config:
+#         orm_mode=True
 
 class modifysearchBase(BaseModel):
     pick_up_locations: str
@@ -131,9 +131,9 @@ class vehicleBase(BaseModel):
     location_name:str
     excess_amount:float
     local_fee:int
-    tax:int
     price:float
     image:str
+    tax:int
     rating:float
     payment_method:str
     rating_count:int
@@ -251,6 +251,10 @@ class daysBase(BaseModel):
     class Config:
         orm_mode=True
 
+class modifybookings(BaseModel):
+    booking_id:UUID = uuid4()
+    status:bool
+
 class vehicle_categoryBase(BaseModel):
     name:str
     class Config:
@@ -298,10 +302,13 @@ async def get_All(db: Session = Depends(get_db)):
 @app.post("/locationSearch")
 async def location_search(location: location_searchBase,db: Session = Depends(get_db)):
     query = db.query(models.vehicleClass)
-    if location:
+    if location or location:
         query = query.filter(func.lower(models.vehicleClass.location_name) == func.lower(location.pick_up_locations))
         locationdata= query.all()
         
+    
+
+
     if locationdata is None:
         raise HTTPException(status_code=404, detail="location not found")
     # vehicledata=db.query(models.locationClass).all()
@@ -326,8 +333,8 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
             "location":vehicle.location_name,
             "vehicle_type": vehicle.vehicle_type,
             "local_fee": vehicle.local_fee,
-            "tax": vehicle.tax,
             "rating": vehicle.rating,
+            "tax":vehicle.tax,
             "rating_count": vehicle.rating_count,
             "payment_method": vehicle.payment_method,
             "excess_amount": vehicle.excess_amount,
@@ -397,9 +404,9 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
             "image": data.image,
             "price": data.price,
             "location":data.location_name,
-            "tax":data.tax,
             "vehicle_type": data.vehicle_type,
             "local_fee": data.local_fee,
+            "tax":data.tax,
             "rating": data.rating,
             "rating_count": data.rating_count,
             "payment_method": data.payment_method,
@@ -432,6 +439,18 @@ async def vehicleCategory(cvehicle: categoryVehicle,db:Session=Depends(get_db)):
         })
     print(cataegory_data)
     return {'vehicledata':vehicledataList}
+
+#update booking_vehicle
+@app.put("/modifyBooking/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=modifybookings,tags=["booking vehicle"])
+async def modifyStatus(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:modifybookings):
+    try:
+        db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
+        db_booking_vehicle_update.status=booking_vehicle.status
+        db.add(db_booking_vehicle_update)
+        db.commit()
+        return db_booking_vehicle_update
+    except:
+        return HTTPException(status_code=404, detail="booking_vehicle not found")
 
 
 
@@ -512,7 +531,6 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
         
     
     return {'vehicledata':vehicledataList}
-
                         
 
 
@@ -700,7 +718,7 @@ async def update_vehicle(vehicle_id:UUID ,db:db_dependency,vehicle:vehicleBase):
         db_vehcile_update.excess_amount=vehicle.excess_amount
         db_vehcile_update.local_fee=vehicle.local_fee
         db_vehcile_update.price=vehicle.price
-        # db_vehcile_update.tax=vehicle.tax
+        db_vehcile_update.tax=vehicle.tax
         db_vehcile_update.image=vehicle.image
         db_vehcile_update.rating=vehicle.rating
         db_vehcile_update.payment_method=vehicle.payment_method
@@ -734,12 +752,12 @@ def get_locations(db:Session=Depends(get_db),skip: int = 0, limit: int = 10):
     locations = db.query(models.locationClass).offset(skip).limit(limit).all()
     return locations
 
-# @app.get("/Mostlocations/", response_model=list[locationBase])
-# def list_locations(skip: int = 0, limit: int = 10):
-#     db = SessionLocal()
-#     locations = get_locations(db, skip=0, limit=5)
-#     db.close()
-#     return locations
+@app.get("/Mostlocations/", response_model=list[locationBase])
+def list_locations(skip: int = 0, limit: int = 10):
+    db = SessionLocal()
+    locations = get_locations(db, skip=0, limit=5)
+    db.close()
+    return locations
 
 #show most common places
 @app.get("/mostCommanPlaces",status_code=status.HTTP_200_OK)
