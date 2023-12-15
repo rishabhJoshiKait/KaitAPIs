@@ -442,7 +442,8 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     if managebooking:
         query = query.filter(models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     bookingVehicledata= query.first()
-
+    # if models.driverDetailClass.email != managebooking.email:
+    #         raise HTTPException(status_code=404, detail="Booking not found")
     if bookingVehicledata is  None:
         raise HTTPException(status_code=404, detail="Booking not found")
     driverid=bookingVehicledata.driver_detail_id
@@ -454,8 +455,8 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     bookingVehicledata= query.first()
     vehicledataList = []
     locations=[]
-
-    
+    if bookingVehicledata is  None:
+        raise HTTPException(status_code=404, detail="Booking not found")
     
     print("id",driverurl)
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
@@ -483,6 +484,7 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
         int(bookingVehicledata.tax)+
         int(bookingVehicledata.paid)+
         int(bookingVehicledata.dueCheck_out))
+        
         vehicledataList.append({
             "id":bookingVehicledata.id,
             "name":bookingVehicledata.name,
@@ -504,11 +506,13 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "location": locations,
             "inclusion": inclusion_data,
             "Rental_t_c": t_cdata,
-            "driver_detail":driver_data
+            "driver_detail":driver_data,
+            "status":bookingVehicledata.status
         })
         
     
     return {'vehicledata':vehicledataList}
+
                         
 
 
