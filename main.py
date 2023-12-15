@@ -204,7 +204,7 @@ class booking_vehicleBase(BaseModel):
     vehicle_type:Optional[str] = None
     excess_amount:Optional[int] = None
     fee:Optional[int] = None
-    status:bool
+    status:bool=false
     rating:Optional[float] = None
     rating_count:Optional[int] = None
     image:Optional[str] = None
