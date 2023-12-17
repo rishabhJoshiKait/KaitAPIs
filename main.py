@@ -1250,6 +1250,8 @@ async def get_conformation(db: Session = Depends(get_db)):
             "id": booking_vehicle_data.id,
             "name": booking_vehicle_data.name,
             "vehicle_type":booking_vehicle_data.vehicle_type,
+            "pick_up_locations" : booking_vehicle_data.pick_up_locations,
+            "drop_off_locations": booking_vehicle_data.drop_off_locations,
             "booking_reference" :booking_vehicle_data.booking_ref,
             "pickupDate":booking_vehicle_data.pickup_Date,
             "dropoffDate":booking_vehicle_data.dropoff_Date,
