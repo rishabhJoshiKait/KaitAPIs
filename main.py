@@ -398,25 +398,32 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
         "attribute":attribute_data
     })
    
+    data=[]
+    data.append({
+        "inclusion":inclusion_data,
+        "attribute":attribute_data
+    })
+   
     responseData=[]
     for data in vehicledataList:
         responseData.append({
-            "id": data.id,
-            "name": data.name,
-            "image": data.image,
-            "price": data.price,
-            "location":data.location_name,
-            "vehicle_type": data.vehicle_type,
-            "local_fee": data.local_fee,
-            "tax":data.tax,
-            "rating": data.rating,
-            "rating_count": data.rating_count,
-            "payment_method": data.payment_method,
-            "excess_amount": data.excess_amount,
-            "vehicle_group": data.vehicle_group_id,
-            "inclusion": inclusion_data,
-            "attributes": attribute_data
-        })
+                "id": data.id,
+                "name": data.name,
+                "image": data.image,
+                "price": data.price,
+                "total":data.price+data.local_fee+data.tax,
+                "location":data.location_name,
+                "vehicle_type": data.vehicle_type,
+                "local_fee": data.local_fee,
+                "tax":data.tax,
+                "rating": data.rating,
+                "rating_count": data.rating_count,
+                "payment_method": data.payment_method,
+                "excess_amount": data.excess_amount,
+                "vehicle_group": data.vehicle_group_id,
+                "inclusion": inclusion_data,
+                "attributes": attribute_data
+            })
     
     return {'vehicledata':responseData}
 
