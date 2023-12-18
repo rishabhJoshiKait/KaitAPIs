@@ -297,7 +297,7 @@ db_dependency = Annotated[Session,Depends(get_db)]
 #show all acriss
 @app.get("/vehicle_type/all",status_code=status.HTTP_200_OK,tags=["vehicle_type"])
 async def get_All(db: Session = Depends(get_db)):
-    vehicle_types=db.query(models.vehicleClass.vehicle_type).all()
+    vehicle_types=db.query(models.vehicleClass.vehicle_type).distinct().all()
     return {'vehicle_type':vehicle_types}
 
 #locationSearch
