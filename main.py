@@ -334,6 +334,7 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
             "price": vehicle.price,
             "location":vehicle.location_name,
             "vehicle_type": vehicle.vehicle_type,
+            "total":vehicle.price+vehicle.local_fee+vehicle.tax,
             "local_fee": vehicle.local_fee,
             "rating": vehicle.rating,
             "tax":vehicle.tax,
