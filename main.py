@@ -510,6 +510,8 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "id":bookingVehicledata.id,
             "name":bookingVehicledata.name,
             "booking_ref":bookingVehicledata.booking_ref,
+            "pick_up_locations":bookingVehicledata.pick_up_locations,
+            "drop_off_locations":bookingVehicledata.drop_off_locations,
             "pickupDate":bookingVehicledata.pickup_Date,
             "dropoffDate":bookingVehicledata.dropoff_Date,
             "vehicle_type":bookingVehicledata.vehicle_type,
@@ -524,7 +526,6 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "Rating":bookingVehicledata.rating,
             "Rating_count":bookingVehicledata.rating_count,
             "image":bookingVehicledata.image,
-            "location": locations,
             "inclusion": inclusion_data,
             "Rental_t_c": t_cdata,
             "driver_detail":driver_data,
@@ -1250,9 +1251,9 @@ async def get_conformation(db: Session = Depends(get_db)):
             "id": booking_vehicle_data.id,
             "name": booking_vehicle_data.name,
             "vehicle_type":booking_vehicle_data.vehicle_type,
+            "booking_reference" :booking_vehicle_data.booking_ref,
             "pick_up_locations" : booking_vehicle_data.pick_up_locations,
             "drop_off_locations": booking_vehicle_data.drop_off_locations,
-            "booking_reference" :booking_vehicle_data.booking_ref,
             "pickupDate":booking_vehicle_data.pickup_Date,
             "dropoffDate":booking_vehicle_data.dropoff_Date,
             "excess_amount": booking_vehicle_data.excess_amount,
@@ -1288,7 +1289,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
 
 
 #update booking_vehicle
-@app.put("/booking_vehicle/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase,tags=["booking vehicle"])
+@app.put("/modify_status/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
 async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:booking_vehicleBase):
     try:
         db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
@@ -1474,7 +1475,7 @@ async def update_cancellation(cancellation_id:UUID ,db:db_dependency,cancellatio
 
 
 #modify
-@app.put("/modifyBooking/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
+@app.put("/modifyBooking/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase,tags=["booking vehicle"])
 async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:booking_vehicleBase):
     try:
         db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
@@ -1511,8 +1512,6 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
             response7=await client.get("https://fleetrez-api.onrender.com/insuranceId/a5fb4cf1-de9c-43e4-8b03-c5000dae6ab1")
             inclusionData=response1.json()
             attributeData=response2.json()
-            location1_data=response3.json()
-            location2_data=locationss.json()
             driverData=response4.json()
             extras=response5.json()
             insurance1_data=response6.json()
@@ -1520,18 +1519,18 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     modifiedData=[]
     locations=[]
     insuranceData=[]
-    locations.append({
-            "location1":location1_data,
-            "location2":location2_data
-            })
+    # locations.append({
+    #         "location1":location1_data,
+    #         "location2":location2_data
+    #         })
     locationsdata = {"locations": []}
     for key, value in locations[0].items():
             locationsdata["locations"].extend(value)
 
-    responsed_data = {"locations": {}}
-    for index, item in enumerate(locationsdata["locations"]):
-        location_key = f"locations{index + 1}"
-        responsed_data["locations"][location_key] = item
+    # responsed_data = {"locations": {}}
+    # for index, item in enumerate(locationsdata["locations"]):
+    #     location_key = f"locations{index + 1}"
+    #     responsed_data["locations"][location_key] = item
 
     insuranceData.append({
         "insurance1":insurance1_data,
@@ -1552,6 +1551,8 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
         "id":booking_vehicle.id,
         "name":booking_vehicle.name,
         "pickup_date":booking_vehicle.pickup_Date,
+        "pick_up_locations":booking_vehicle.pick_up_locations,
+        "drop_off_locations":booking_vehicle.drop_off_locations,
         "dropoff_date":booking_vehicle.dropoff_Date,
         "booking_ref":booking_vehicle.booking_ref,
         "vehicle_type":booking_vehicle.vehicle_type,
@@ -1567,7 +1568,6 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
         "image":booking_vehicle.image,
         "attributes":attributeData,
         "inclusion":inclusionData,
-        "locations":responsed_data,
         "extras":extras,
         "driver":driverData,
         "insurances":response_data
