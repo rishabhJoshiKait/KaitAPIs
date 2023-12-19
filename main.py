@@ -1512,8 +1512,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     async with httpx.AsyncClient() as client:
             response1= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
             response2= await client.get("https://fleetrez-api.onrender.com/attribute/all")
-            response3=await client.get("https://fleetrez-api.onrender.com/locationById/69823c50-c87d-4f7e-820b-26657eba3ee4")
-            locationss=await client.get("https://fleetrez-api.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
+            
             response4=await client.get(driverurl)
             response5=await client.get("https://fleetrez-api.onrender.com/extra/all")
             response6=await client.get("https://fleetrez-api.onrender.com/insuranceId/cceb9b84-eba1-48b8-ab51-91cb4847cd26")
@@ -1527,18 +1526,6 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     modifiedData=[]
     locations=[]
     insuranceData=[]
-    # locations.append({
-    #         "location1":location1_data,
-    #         "location2":location2_data
-    #         })
-    locationsdata = {"locations": []}
-    for key, value in locations[0].items():
-            locationsdata["locations"].extend(value)
-
-    # responsed_data = {"locations": {}}
-    # for index, item in enumerate(locationsdata["locations"]):
-    #     location_key = f"locations{index + 1}"
-    #     responsed_data["locations"][location_key] = item
 
     insuranceData.append({
         "insurance1":insurance1_data,
@@ -1564,6 +1551,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
         "dropoff_date":booking_vehicle.dropoff_Date,
         "booking_ref":booking_vehicle.booking_ref,
         "vehicle_type":booking_vehicle.vehicle_type,
+        "status":booking_vehicle.status,
         "excess_amount":booking_vehicle.excess_amount,
         "Fee":booking_vehicle.fee,
         "Rating":booking_vehicle.rating,
@@ -1584,6 +1572,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     if booking_vehicle is None:
         raise HTTPException(status_code=404, detail='booking_vehicle not found')
     return {"ModifiedData": modifiedData}
+
 
 
 #show all categories
