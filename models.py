@@ -41,6 +41,7 @@ class booking_vehicleClass(Base):
     car_rental=Column(BigInteger)
     Insurance=Column(BigInteger)
     status=Column(Boolean)
+    booking_status = Column(String(255))
     tax=Column(BigInteger)
     paid=Column(BigInteger)
     dueCheck_out=Column(BigInteger)
