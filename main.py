@@ -133,12 +133,11 @@ class vehicleBase(BaseModel):
     local_fee:int
     price:float
     image:str
-    tax:int
     rating:float
     payment_method:str
     rating_count:int
     acriss_id:UUID = uuid4()
-    attribute_id:UUID = uuid4()
+    attribute_id: UUID = uuid4()
     location_id:UUID = uuid4()
     vehicle_group_id:UUID = uuid4()
     inclusion_id:UUID = uuid4()
@@ -216,10 +215,10 @@ class booking_vehicleBase(BaseModel):
     tax:Optional[int] = None
     paid:Optional[int] = None
     dueCheck_out:Optional[int] = None
-    acriss_id: Optional[UUID] = None  # Updated to Optional[UUID]
-    driver_detail_id: Optional[UUID] = None  # Updated to Optional[UUID]
-    t_cid: Optional[UUID] = None  # Updated to Optional[UUID]
-    inclusionid: Optional[UUID] = None  # Updated to Optional[UUID]
+    acriss_id: Optional[UUID] = None  
+    driver_detail_id: Optional[UUID] = None  
+    t_cid: Optional[UUID] = None 
+    inclusionid: Optional[UUID] = None  
     locationid: Optional[UUID] = None  
     class Config:
         orm_mode=True
@@ -254,6 +253,9 @@ class daysBase(BaseModel):
     is_closed:bool
     class Config:
         orm_mode=True
+
+class payments(BaseModel):
+    payment_method:str
 
 class modifybookings(BaseModel):
     status:bool
@@ -317,7 +319,7 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
     # vehicledata=db.query(models.locationClass).all()
     vehicledataList = []
 
-    for vehicle in locationdata:
+    for data in locationdata:
         async with httpx.AsyncClient() as client:
             response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
             response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
@@ -326,24 +328,28 @@ async def location_search(location: location_searchBase,db: Session = Depends(ge
             attribute_data = response.json()
             acriss_data=response1.json()
             inclusion_data=response2.json()
+            print("Total-----------------------------------------------",data.local_fee)
+            tax_value=data.tax
             # location_data=response3.json()
-            
+        # if vehicle.payment_method == "PayAtcounter":
+        #     pricing=vehicle.excess_amount+vehicle.local_fee
+            # if(data.)
         vehicledataList.append({
-            "id": vehicle.id,
-            "name": vehicle.name,
-            "image": vehicle.image,
-            "price": vehicle.price,
-            "location":vehicle.location_name,
-            "vehicle_type": vehicle.vehicle_type,
-            "total":vehicle.price+vehicle.local_fee,
-            "local_fee": vehicle.local_fee,
-            "rating": vehicle.rating,
-            "tax":vehicle.tax,
-            "rating_count": vehicle.rating_count,
-            "payment_method": vehicle.payment_method,
-            "excess_amount": vehicle.excess_amount,
-            "vehicle_group": vehicle.vehicle_group_id,
-            "attribute_id":vehicle.attribute_id,
+            "id": data.id,
+            "name": data.name,
+            "image": data.image,
+            "price": data.price,
+            "total": data.price+data.local_fee,
+            "location":data.location_name,
+            "vehicle_type": data.vehicle_type,
+            "local_fee": data.local_fee,
+            "rating": data.rating,
+            "tax":data.tax,
+            "rating_count": data.rating_count,
+            "payment_method": data.payment_method,
+            "excess_amount": data.excess_amount,
+            "vehicle_group": data.vehicle_group_id,
+            "attribute_id":data.attribute_id,
             # "location": location_data,
             "inclusion": inclusion_data,
             "attributes": attribute_data
@@ -376,7 +382,7 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
             elif location.vehicle_type:
                 if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
                     vehicledataList.append(item)
-            elif location.paymentType:
+            elif location.paymentType == item.payment_method:
                 if any(v.lower() in item.payment_method.lower() for v in location.paymentType):
                     vehicledataList.append(item)
             elif location.gearType:
@@ -399,21 +405,22 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
         "inclusion":inclusion_data,
         "attribute":attribute_data
     })
-   
-    data=[]
-    data.append({
-        "inclusion":inclusion_data,
-        "attribute":attribute_data
-    })
-   
+    if item.payment_method.lower() == "Paynow":
+        data["paid"] = item.price + item.local_fee
+        data["due_at_checkout"] = 0
+    elif item.payment_method.lower() == "PayAtcounter":
+        data["paid"] = 0
+        data["due_at_checkout"] = item.price + item.local_fee
+
     responseData=[]
+
     for data in vehicledataList:
         responseData.append({
                 "id": data.id,
                 "name": data.name,
                 "image": data.image,
                 "price": data.price,
-                "total":data.price+data.local_fee+data.tax,
+                "total":data.price+data.local_fee,
                 "location":data.location_name,
                 "vehicle_type": data.vehicle_type,
                 "local_fee": data.local_fee,
@@ -426,8 +433,15 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
                 "inclusion": inclusion_data,
                 "attributes": attribute_data
             })
+        
     
     return {'vehicledata':responseData}
+
+# async def PayNow_later(method: payme,db: Session = Depends(get_db)):
+#     query = db.query(models.vehicleClass)
+#     if location or location:
+#         query = query.filter(func.lower(models.vehicleClass.location_name) == func.lower(location.pick_up_locations))
+#         locationdata= query.all()
 
 
 @app.post("/categoryVehicle")
@@ -480,6 +494,10 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
+    async with httpx.AsyncClient() as client:
+        response4=await client.get(driverurl)
+    print("email ----------------------------------------",response4.json())
+    print("EMAIL ------------------------------------------------------",response4)
     if managebooking:
         query = query.filter(models.driverDetailClass.email == managebooking.email and models.booking_vehicleClass.booking_ref == managebooking.booking_reference)
     bookingVehicledata= query.first()
@@ -726,6 +744,7 @@ async def update_vehicle(vehicle_id:UUID ,db:db_dependency,vehicle:vehicleBase):
         db_vehcile_update=db.query(models.vehicleClass).filter(models.vehicleClass.id==vehicle_id).first()
         db_vehcile_update.name=vehicle.name
         db_vehcile_update.vehicle_type=vehicle.vehicle_type
+        db_vehcile_update.location_name=vehicle.location_name
         db_vehcile_update.excess_amount=vehicle.excess_amount
         db_vehcile_update.local_fee=vehicle.local_fee
         db_vehcile_update.price=vehicle.price
@@ -1173,7 +1192,11 @@ id()
 
 def some_function() -> bool:
     # Your logic to determine the boolean value
-    return 0
+    return False
+
+def bookings_status() -> str:
+    # Your logic to determine the string as success value
+    return "success"
 
 # create booking_vehicle
 @app.post("/booking_vehicle",status_code=status.HTTP_201_CREATED,tags=["booking vehicle"])
@@ -1183,6 +1206,7 @@ async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_de
         name=booking_vehicle.name,
         booking_ref='TST-'+id(),
         pickup_Date=booking_vehicle.pickup_Date,
+        booking_status=bookings_status(),
         dropoff_Date=booking_vehicle.dropoff_Date,
         pick_up_locations=booking_vehicle.pick_up_locations,
         drop_off_locations=booking_vehicle.drop_off_locations,
@@ -1244,10 +1268,10 @@ async def get_conformation(db: Session = Depends(get_db)):
             location2_data=locationss.json()
             driver_detail_data=response3.json()
             t_c_data=response4.json()
-            locations.append({
-                "loacation1":location1_data,
-                "location2":location2_data
-            })
+            # locations.append({
+            #     "loacation1":location1_data,
+            #     "location2":location2_data
+            # })
             total_data = (
         int(booking_vehicle_data.car_rental) +
         int(booking_vehicle_data.excess_amount) +
@@ -1271,16 +1295,17 @@ async def get_conformation(db: Session = Depends(get_db)):
             "tax":booking_vehicle_data.tax,
             "paid":booking_vehicle_data.paid,
             "Due_at_Checkout":booking_vehicle_data.dueCheck_out,
+            "booking_status":booking_vehicle_data.booking_status,
             "Fee": booking_vehicle_data.fee,
             "rating": booking_vehicle_data.rating,
             "rating_count":booking_vehicle_data.rating_count,
             "image":booking_vehicle_data.image,
             # "locations": locations,
             "inclusion": inclusion_data,
-            "status":booking_vehicle_data.status,    
             "t_c": t_c_data,
             "drivers":driver_detail_data,
-            "total":total_data
+            "total":total_data,
+            "status":booking_vehicle_data.status
             
         })
             print(vehicledataList)
@@ -1299,7 +1324,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
 
 
 #update booking_vehicle
-@app.put("/modifyStatus/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
+@app.put("/modify_status/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
 async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:booking_vehicleBase):
     try:
         db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
@@ -1309,8 +1334,20 @@ async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booki
         return db_booking_vehicle_update
     except:
         return HTTPException(status_code=404, detail="booking_vehicle not found")
+    
 
 
+#update booking_vehicle
+@app.put("/modify_status_cancle_status/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
+async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:booking_vehicleBase):
+    try:
+        db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
+        db_booking_vehicle_update.booking_status=booking_vehicle.booking_status
+        db.add(db_booking_vehicle_update)
+        db.commit()
+        return db_booking_vehicle_update
+    except:
+        return HTTPException(status_code=404, detail="booking_vehicle not found")
 
 
 # @app.get("/acriss")
@@ -1574,7 +1611,6 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     if booking_vehicle is None:
         raise HTTPException(status_code=404, detail='booking_vehicle not found')
     return {"ModifiedData": modifiedData}
-
 
 
 #show all categories
