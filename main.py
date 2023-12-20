@@ -1172,7 +1172,7 @@ id()
 
 def some_function() -> bool:
     # Your logic to determine the boolean value
-    return False
+    return 0
 
 # create booking_vehicle
 @app.post("/booking_vehicle",status_code=status.HTTP_201_CREATED,tags=["booking vehicle"])
