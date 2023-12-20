@@ -319,9 +319,9 @@ async def location_search(location: location_searchBase, db: Session = Depends(g
 
     for data in locationdata:
         async with httpx.AsyncClient() as client:
-            response = await client.get("http://127.0.0.1:8000/attribute/all")
-            response1 = await client.get("http://127.0.0.1:8000/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
-            response2 = await client.get("http://127.0.0.1:8000/inclusion/all")
+            response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
+            response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
+            response2 = await client.get("https://fleetrez-api.onrender.com/inclusion/all")
             attribute_data = response.json()
             acriss_data = response1.json()
             inclusion_data = response2.json()
