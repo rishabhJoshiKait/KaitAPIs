@@ -304,58 +304,59 @@ async def get_All(db: Session = Depends(get_db)):
     return {'vehicle_type':vehicle_types}
 
 #locationSearch
+working_hours_start = 9  # Example: 9 AM
+working_hours_end = 5  # Example: 5 PM
+
 @app.post("/locationSearch")
-async def location_search(location: location_searchBase,db: Session = Depends(get_db)):
+async def location_search(location: location_searchBase, db: Session = Depends(get_db)):
     query = db.query(models.vehicleClass)
-    if location or location:
-        query = query.filter(func.lower(models.vehicleClass.location_name) == func.lower(location.pick_up_locations))
-        locationdata= query.all()
-        
     
+    if location:
+        query = query.filter(func.lower(models.vehicleClass.location_name) == func.lower(location.pick_up_locations))
+        locationdata = query.all()
 
-
-    if locationdata is None:
-        raise HTTPException(status_code=404, detail="location not found")
-    # vehicledata=db.query(models.locationClass).all()
     vehicledataList = []
 
     for data in locationdata:
         async with httpx.AsyncClient() as client:
-            response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
-            response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
-            response2= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
-            # response3=await client.get("https://fleetrez-api.onrender.com/locationById/1")
+            response = await client.get("http://127.0.0.1:8000/attribute/all")
+            response1 = await client.get("http://127.0.0.1:8000/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
+            response2 = await client.get("http://127.0.0.1:8000/inclusion/all")
             attribute_data = response.json()
-            acriss_data=response1.json()
-            inclusion_data=response2.json()
-            print("Total-----------------------------------------------",data.local_fee)
-            tax_value=data.tax
-            # location_data=response3.json()
-        # if vehicle.payment_method == "PayAtcounter":
-        #     pricing=vehicle.excess_amount+vehicle.local_fee
-            # if(data.)
+            acriss_data = response1.json()
+            inclusion_data = response2.json()
+
+        total_price = data.price + data.local_fee
+
+        # Check if drop-off time is after working hours
+        if location.drop_off_date_time.hour > working_hours_end or location.pick_up_date_time.hour < working_hours_start:
+            ooh_fee = 50  # Example ooh_fee amount
+            total_price += ooh_fee
+        else:
+            ooh_fee = 0
+
         vehicledataList.append({
             "id": data.id,
             "name": data.name,
             "image": data.image,
             "price": data.price,
-            "total": data.price+data.local_fee,
-            "location":data.location_name,
+            "total": total_price,
+            "location": data.location_name,
             "vehicle_type": data.vehicle_type,
             "local_fee": data.local_fee,
             "rating": data.rating,
-            "tax":data.tax,
+            "tax": data.tax,
             "rating_count": data.rating_count,
             "payment_method": data.payment_method,
             "excess_amount": data.excess_amount,
             "vehicle_group": data.vehicle_group_id,
-            "attribute_id":data.attribute_id,
-            # "location": location_data,
+            "attribute_id": data.attribute_id,
             "inclusion": inclusion_data,
-            "attributes": attribute_data
+            "attributes": attribute_data,
+            "ooh_fee": ooh_fee
         })
-    
-    return {'vehicledata':vehicledataList}
+
+    return {'vehicledata': vehicledataList}
 
 
 #ModifylocationSearch
