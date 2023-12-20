@@ -207,6 +207,7 @@ class booking_vehicleBase(BaseModel):
     excess_amount:Optional[int] = None
     fee:Optional[int] = None
     status:bool = None
+    booking_status:Optional[str] = "Success"
     rating:Optional[float] = None
     rating_count:Optional[int] = None
     image:Optional[str] = None
@@ -1276,6 +1277,7 @@ async def get_conformation(db: Session = Depends(get_db)):
             "image":booking_vehicle_data.image,
             # "locations": locations,
             "inclusion": inclusion_data,
+            "status":booking_vehicle_data.status,    
             "t_c": t_c_data,
             "drivers":driver_detail_data,
             "total":total_data
