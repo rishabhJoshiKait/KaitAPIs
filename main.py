@@ -54,18 +54,18 @@ app.add_middleware(
 #     class Config:
 #         orm_mode=True
 
-new_column_name = "booking_status"
-alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name} VARCHAR(255);"
+# new_column_name = "booking_status"
+# alter_table_query = f"ALTER TABLE booking_vehicle ADD COLUMN {new_column_name} VARCHAR(255);"
 
 
-@app.on_event("startup")
-def on_startup():
-    db = SessionLocal()
-    try:
-        db.execute(text(alter_table_query))
-        db.commit()
-    finally:
-        db.close()
+# @app.on_event("startup")
+# def on_startup():
+#     db = SessionLocal()
+#     try:
+#         db.execute(text(alter_table_query))
+#         db.commit()
+#     finally:
+#         db.close()
 
 date_str = "2023-10-11T15:30:00"
 class location_searchBase(BaseModel):
@@ -1297,7 +1297,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
 
 
 #update booking_vehicle
-@app.put("/modify_status/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
+@app.put("/modifyStatus/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
 async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:booking_vehicleBase):
     try:
         db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
