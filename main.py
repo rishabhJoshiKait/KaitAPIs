@@ -304,59 +304,74 @@ async def get_All(db: Session = Depends(get_db)):
     return {'vehicle_type':vehicle_types}
 
 #locationSearch
+
 working_hours_start = 9  # Example: 9 AM
 working_hours_end = 5  # Example: 5 PM
 
 @app.post("/locationSearch")
 async def location_search(location: location_searchBase, db: Session = Depends(get_db)):
     query = db.query(models.vehicleClass)
-    
     if location:
         query = query.filter(func.lower(models.vehicleClass.location_name) == func.lower(location.pick_up_locations))
         locationdata = query.all()
+        
+        if not locationdata:
+            raise HTTPException(status_code=404, detail="No vehicles found for the specified pick_up_location")
 
-    vehicledataList = []
+          # Example one-way_fee amount
 
-    for data in locationdata:
-        async with httpx.AsyncClient() as client:
-            response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
-            response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
-            response2 = await client.get("https://fleetrez-api.onrender.com/inclusion/all")
-            attribute_data = response.json()
-            acriss_data = response1.json()
-            inclusion_data = response2.json()
+        vehicledataList = []
 
-        total_price = data.price + data.local_fee
+        for data in locationdata:
+            async with httpx.AsyncClient() as client:
+                response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
+                response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
+                response2 = await client.get("https://fleetrez-api.onrender.com/inclusion/all")
+                attribute_data = response.json()
+                acriss_data = response1.json()
+                inclusion_data = response2.json()
 
-        # Check if drop-off time is after working hours
-        if location.drop_off_date_time.hour > working_hours_end or location.pick_up_date_time.hour < working_hours_start:
+            total_price = data.price + data.local_fee
+
+            # Check if drop-off time is after working hours
             ooh_fee = 50  # Example ooh_fee amount
-            total_price += ooh_fee
-        else:
-            ooh_fee = 0
+            if location.drop_off_date_time.hour > working_hours_end or location.pick_up_date_time.hour < working_hours_start:
+                
+                total_price += ooh_fee
+            else:
+                ooh_fee = 0
 
-        vehicledataList.append({
-            "id": data.id,
-            "name": data.name,
-            "image": data.image,
-            "price": data.price,
-            "total": total_price,
-            "location": data.location_name,
-            "vehicle_type": data.vehicle_type,
-            "local_fee": data.local_fee,
-            "rating": data.rating,
-            "tax": data.tax,
-            "rating_count": data.rating_count,
-            "payment_method": data.payment_method,
-            "excess_amount": data.excess_amount,
-            "vehicle_group": data.vehicle_group_id,
-            "attribute_id": data.attribute_id,
-            "inclusion": inclusion_data,
-            "attributes": attribute_data,
-            "ooh_fee": ooh_fee
-        })
+            # Check if the pick_up_location is "Delhi" (case-insensitive) and apply one-way fee
+            one_way_fee = 100
+            if location.pick_up_locations.lower() != "delhi" or location.drop_off_locations.lower() == "delhi" or location.drop_off_locations.lower() == '':
+                one_way_fee = 0
+            else:
+                one_way_fee=100
+                total_price += one_way_fee
 
-    return {'vehicledata': vehicledataList}
+            vehicledataList.append({
+                "id": data.id,
+                "name": data.name,
+                "image": data.image,
+                "price": data.price,
+                "total": total_price,
+                "location": data.location_name,
+                "vehicle_type": data.vehicle_type,
+                "local_fee": data.local_fee,
+                "rating": data.rating,
+                "tax": data.tax,
+                "rating_count": data.rating_count,
+                "payment_method": data.payment_method,
+                "excess_amount": data.excess_amount,
+                "vehicle_group": data.vehicle_group_id,
+                "attribute_id": data.attribute_id,
+                "inclusion": inclusion_data,
+                "attributes": attribute_data,
+                "ooh_fee": ooh_fee,
+                "one_way_fee": one_way_fee
+            })
+
+        return {'vehicledata': vehicledataList}
 
 
 #ModifylocationSearch
@@ -407,15 +422,16 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
         "attribute":attribute_data
     })
     if item.payment_method.lower() == "Paynow":
-        data["paid"] = item.price + item.local_fee
-        data["due_at_checkout"] = 0
+        vehicledataList["paid"] = item.price + item.local_fee
+        vehicledataList["due_at_checkout"] = 0
     elif item.payment_method.lower() == "PayAtcounter":
-        data["paid"] = 0
-        data["due_at_checkout"] = item.price + item.local_fee
+        vehicledataList["paid"] = 0
+        vehicledataList["due_at_checkout"] = item.price + item.local_fee
 
     responseData=[]
 
     for data in vehicledataList:
+        # responseData.append(vehicledataList)
         responseData.append({
                 "id": data.id,
                 "name": data.name,
@@ -426,6 +442,8 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
                 "vehicle_type": data.vehicle_type,
                 "local_fee": data.local_fee,
                 "tax":data.tax,
+                # "paid":item.paid,
+                # "dueAtCheckout":item.due_at_checkout,
                 "rating": data.rating,
                 "rating_count": data.rating_count,
                 "payment_method": data.payment_method,
@@ -557,8 +575,8 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "inclusion": inclusion_data,
             "Rental_t_c": t_cdata,
             "driver_detail":driver_data,
-            "status":bookingVehicledata.status,
-            "booking_status":bookingVehicledata.booking_status
+            "booking_status":bookingVehicledata.booking_status,
+            "status":bookingVehicledata.status
         })
         
     
@@ -1264,7 +1282,7 @@ async def get_conformation(db: Session = Depends(get_db)):
             response2=await client.get("https://fleetrez-api.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
             locationss=await client.get("https://fleetrez-api.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
             response3=await client.get(driverurl)
-            response4=await client.get("https://fleetrez-api.onrender.com/t_c/all")
+            response4=await client.get("https://fleetrez-api.onrender.com/rental_t_c/all")
             inclusion_data= response1.json()
             location1_data=response2.json()
             location2_data=locationss.json()
