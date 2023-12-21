@@ -1325,7 +1325,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
 
 
 #update booking_vehicle
-@app.put("/modify_status/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
+@app.put("/modifyStatus/{booking_vehicle_id}",status_code=status.HTTP_200_OK,response_model=booking_vehicleBase)
 async def update_booking_vehicle(booking_vehicle_id:UUID ,db:db_dependency,booking_vehicle:booking_vehicleBase):
     try:
         db_booking_vehicle_update=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()
