@@ -557,7 +557,8 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
             "inclusion": inclusion_data,
             "Rental_t_c": t_cdata,
             "driver_detail":driver_data,
-            "status":bookingVehicledata.status
+            "status":bookingVehicledata.status,
+            "booking_status":bookingVehicledata.booking_status
         })
         
     
