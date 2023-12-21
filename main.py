@@ -348,7 +348,9 @@ async def location_search(location: location_searchBase, db: Session = Depends(g
             else:
                 one_way_fee=100
                 total_price += one_way_fee
-
+                
+            yield_value = 100 if location.pick_up_locations.lower() == "delhi" and location.drop_off_locations.lower() == "gurgaon" else 0
+            
             vehicledataList.append({
                 "id": data.id,
                 "name": data.name,
@@ -368,7 +370,8 @@ async def location_search(location: location_searchBase, db: Session = Depends(g
                 "inclusion": inclusion_data,
                 "attributes": attribute_data,
                 "ooh_fee": ooh_fee,
-                "one_way_fee": one_way_fee
+                "one_way_fee": one_way_fee,
+                "yield":yield_value
             })
 
         return {'vehicledata': vehicledataList}
