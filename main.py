@@ -397,7 +397,7 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
     print(locationdata,"LocationData")
     vehicledataList = []
     for item in locationdata:
-        if location.vehicle_type and location.paymentType: 
+        if location.vehicle_type: 
             if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
                 vehicledataList.append(item)
            
