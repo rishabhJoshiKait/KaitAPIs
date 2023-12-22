@@ -342,15 +342,17 @@ async def location_search(location: location_searchBase, db: Session = Depends(g
                 ooh_fee = 0
 
             # Check if the pick_up_location is "Delhi" (case-insensitive) and apply one-way fee
+
+
             one_way_fee = 100
             if location.pick_up_locations.lower() != "delhi" or location.drop_off_locations.lower() == "delhi" or location.drop_off_locations.lower() == '':
                 one_way_fee = 0
             else:
                 one_way_fee=100
                 total_price += one_way_fee
-                
+
             yield_value = 100 if location.pick_up_locations.lower() == "delhi" and location.drop_off_locations.lower() == "gurgaon" else 0
-            
+
             vehicledataList.append({
                 "id": data.id,
                 "name": data.name,
@@ -371,7 +373,7 @@ async def location_search(location: location_searchBase, db: Session = Depends(g
                 "attributes": attribute_data,
                 "ooh_fee": ooh_fee,
                 "one_way_fee": one_way_fee,
-                "yield":yield_value
+                "yield": yield_value
             })
 
         return {'vehicledata': vehicledataList}
@@ -395,21 +397,23 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
     print(locationdata,"LocationData")
     vehicledataList = []
     for item in locationdata:
-            if location.vehicle_type and location.paymentType and location.price:
+        if location.vehicle_type and location.paymentType: 
+            if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
+                vehicledataList.append(item)
+           
+        if location.vehicle_type == item.vehicle_type and location.paymentType == item.payment_method:
+            if any(v.lower() in item.payment_method.lower() for v in location.paymentType):
                 if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
                     vehicledataList.append(item)
-            elif location.vehicle_type:
-                if any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type):
-                    vehicledataList.append(item)
-            elif location.paymentType == item.payment_method:
-                if any(v.lower() in item.payment_method.lower() for v in location.paymentType):
-                    vehicledataList.append(item)
-            elif location.gearType:
-                if any(v.lower() in models.attributeClass.lower() for v in location.gearType):
-                    vehicledataList.append(item)
-        # elif location.price:
-        #     if any()
-
+            
+        # if location.paymentType:
+        #     if any(v.lower() in item.payment_method.lower() for v in location.paymentType):
+        #         vehicledataList.append(item)
+           
+        # if location.vehicle_type == item.payment_method:
+        #         if any(v.lower() in item.payment_method.lower() for v in location.paymentType):
+        #             vehicledataList.append(item)
+            
                 
     async with httpx.AsyncClient() as client:
             response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
@@ -424,12 +428,15 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
         "inclusion":inclusion_data,
         "attribute":attribute_data
     })
-    if item.payment_method.lower() == "Paynow":
-        vehicledataList["paid"] = item.price + item.local_fee
-        vehicledataList["due_at_checkout"] = 0
-    elif item.payment_method.lower() == "PayAtcounter":
-        vehicledataList["paid"] = 0
-        vehicledataList["due_at_checkout"] = item.price + item.local_fee
+    if item.payment_method.lower() == "paynow":
+        item_paid = item.price + item.local_fee
+        item_due_at_checkout = 0
+    elif item.payment_method.lower() == "payatcounter":
+        item_paid = 0
+        item_due_at_checkout = item.price + item.local_fee
+    else:
+        item_paid = 0
+        item_due_at_checkout = 0
 
     responseData=[]
 
@@ -445,8 +452,8 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
                 "vehicle_type": data.vehicle_type,
                 "local_fee": data.local_fee,
                 "tax":data.tax,
-                # "paid":item.paid,
-                # "dueAtCheckout":item.due_at_checkout,
+                "paid":item_paid,
+                "dueAtCheckout":item_due_at_checkout,
                 "rating": data.rating,
                 "rating_count": data.rating_count,
                 "payment_method": data.payment_method,
@@ -459,6 +466,67 @@ async def location_search(location: modifysearchBase,db: Session = Depends(get_d
     
     return {'vehicledata':responseData}
 
+# @app.post("/modifylocationSearch")
+# async def location_search(location: modifysearchBase, db: Session = Depends(get_db)):
+#     query = db.query(models.vehicleClass)
+#     quer1 = db.query(models.attributeClass)
+#     attridata = quer1.all()
+
+#     if location:
+#         query = query.filter(func.lower(models.vehicleClass.location_name) == func.lower(location.pick_up_locations))
+#         locationdata = query.all()
+
+#     if not locationdata:
+#         raise HTTPException(status_code=404, detail="Location not found")
+
+#     vehicledataList = []
+    
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get("https://fleetrez-api.onrender.com/attribute/all")
+#         response1 = await client.get("https://fleetrez-api.onrender.com/acrissById/771976e9-89d5-4da0-b49a-ca63261ef5db")
+#         response2 = await client.get("https://fleetrez-api.onrender.com/inclusion/all")
+#         attribute_data = response.json()
+#         acriss_data = response1.json()
+#         inclusion_data = response2.json()
+
+#     for item in locationdata:
+#         if (
+#             (location.vehicle_type and any(v.lower() in item.vehicle_type.lower() for v in location.vehicle_type)) or
+#             (location.paymentType and any(v.lower() == item.payment_method.lower() for v in location.paymentType)) 
+#         ):
+#             # Apply payment method filter
+#             if item.payment_method.lower() == "paynow":
+#                 item_paid = item.price + item.local_fee
+#                 item_due_at_checkout = 0
+#             elif item.payment_method.lower() == "payatcounter":
+#                 item_paid = 0
+#                 item_due_at_checkout = item.price + item.local_fee
+#             else:
+#                 item_paid = 0
+#                 item_due_at_checkout = 0
+
+#             vehicledataList.append({
+#                 "id": item.id,
+#                 "name": item.name,
+#                 "image": item.image,
+#                 "price": item.price,
+#                 "total": item.price + item.local_fee,
+#                 "location": item.location_name,
+#                 "vehicle_type": item.vehicle_type,
+#                 "local_fee": item.local_fee,
+#                 "tax": item.tax,
+#                 "rating": item.rating,
+#                 "rating_count": item.rating_count,
+#                 "payment_method": item.payment_method,
+#                 "excess_amount": item.excess_amount,
+#                 "vehicle_group": item.vehicle_group_id,
+#                 "inclusion": inclusion_data,
+#                 "attributes": attribute_data,
+#                 "paid": item_paid,
+#                 "due_at_checkout": item_due_at_checkout
+#             })
+
+#     return {'vehicledata': vehicledataList}
 # async def PayNow_later(method: payme,db: Session = Depends(get_db)):
 #     query = db.query(models.vehicleClass)
 #     if location or location:
@@ -1267,13 +1335,20 @@ def get_latest_created_item(db):
     latest_item = db.query(models.booking_vehicleClass).order_by(models.booking_vehicleClass.id.desc()).first()
     return latest_item
 
-#show all booking_vehicle
-@app.get("/booking_conformation",status_code=status.HTTP_200_OK)
-async def get_conformation(db: Session = Depends(get_db)):
-    booking_vehicles=db.query(models.booking_vehicleClass).all()
-    vehicle_data=db.query(models.vehicleClass).all()
-    booking_vehicle_data=booking_vehicles[-1]
-    # tc=db.query(models.t_cClass).all()
+# #display booking_vehicle by id
+@app.get("/booking_vehicleId/{booking_vehicle}",status_code=status.HTTP_200_OK,tags=["booking vehicle"])
+async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
+    booking_vehicle=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()   
+    if booking_vehicle is None:
+        raise HTTPException(status_code=404, detail='booking_vehicle not found')
+    return {"booking_vehicle": booking_vehicle}
+    
+
+
+# #display booking_vehicle by id
+@app.get("/bookingConformation/{booking_vehicle}",status_code=status.HTTP_200_OK)
+async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
+    booking_vehicle_data=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()   
     driverid=booking_vehicle_data.driver_detail_id
     drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
@@ -1334,16 +1409,6 @@ async def get_conformation(db: Session = Depends(get_db)):
             print(vehicledataList)
     
     return {'ConformationData':vehicledataList}
-    
-
-
-# #display booking_vehicle by id
-@app.get("/booking_vehicleId/{booking_vehicle}",status_code=status.HTTP_200_OK,tags=["booking vehicle"])
-async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
-    booking_vehicle=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()   
-    if booking_vehicle is None:
-        raise HTTPException(status_code=404, detail='booking_vehicle not found')
-    return {"booking_vehicle": booking_vehicle}
 
 
 #update booking_vehicle
