@@ -1293,6 +1293,8 @@ def bookings_status() -> str:
 @app.post("/booking_vehicle",status_code=status.HTTP_201_CREATED,tags=["booking vehicle"])
 async def create_booking_vehicle(booking_vehicle: booking_vehicleBase, db: db_dependency):
     last_data=[]
+    if not booking_vehicle.drop_off_locations:
+        booking_vehicle.drop_off_locations = booking_vehicle.pick_up_locations
     db_booking_vehicle = models.booking_vehicleClass(
         name=booking_vehicle.name,
         booking_ref='TST-'+id(),
