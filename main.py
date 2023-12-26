@@ -1346,7 +1346,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
 
 
 # #display booking_vehicle by id
-@app.get("/bookingConformation/{booking_vehicle}",status_code=status.HTTP_200_OK)
+@app.get("/bookingConformation/{booking_vehicle_id}",status_code=status.HTTP_200_OK)
 async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     booking_vehicle_data=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()   
     driverid=booking_vehicle_data.driver_detail_id
