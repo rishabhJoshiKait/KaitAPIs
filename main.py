@@ -1352,32 +1352,26 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
 async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     booking_vehicle_data=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()   
     driverid=booking_vehicle_data.driver_detail_id
-    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
+    drurl="http://127.0.0.1:8000/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
     vehicledataList = []
     locations=[]
     async with httpx.AsyncClient() as client:
-            response1= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
-            response2=await client.get("https://fleetrez-api.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
-            locationss=await client.get("https://fleetrez-api.onrender.com/locationById/bfc8c292-1a1c-4cde-b162-72e4a5543cc2")
+            response1= await client.get("http://127.0.0.1:8000/inclusion/all")
             response3=await client.get(driverurl)
-            response4=await client.get("https://fleetrez-api.onrender.com/rental_t_c/all")
+            response4=await client.get("http://127.0.0.1:8000/rental_t_c/all")
             inclusion_data= response1.json()
-            location1_data=response2.json()
-            location2_data=locationss.json()
             driver_detail_data=response3.json()
             t_c_data=response4.json()
-            # locations.append({
-            #     "loacation1":location1_data,
-            #     "location2":location2_data
-            # })
+
             total_data = (
         int(booking_vehicle_data.car_rental) +
         int(booking_vehicle_data.excess_amount) +
         int(booking_vehicle_data.Insurance)+
         int(booking_vehicle_data.tax)+
         int(booking_vehicle_data.paid)+
+        int(booking_vehicle_data.fee)+
         int(booking_vehicle_data.dueCheck_out))
             
             vehicledataList.append({
@@ -1400,7 +1394,6 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
             "rating": booking_vehicle_data.rating,
             "rating_count":booking_vehicle_data.rating_count,
             "image":booking_vehicle_data.image,
-            # "locations": locations,
             "inclusion": inclusion_data,
             "t_c": t_c_data,
             "drivers":driver_detail_data,
