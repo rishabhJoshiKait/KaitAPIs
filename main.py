@@ -581,7 +581,7 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     if bookingVehicledata is  None:
         raise HTTPException(status_code=404, detail="Booking not found")
     driverid=bookingVehicledata.driver_detail_id
-    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
+    drurl="http://127.0.0.1:8000/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
     async with httpx.AsyncClient() as client:
@@ -597,17 +597,15 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Booking not found")
     
     print("id",driverurl)
-    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
+    drurl="http://127.0.0.1:8000/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
     async with httpx.AsyncClient() as client:
-        response = await client.get("https://fleetrez-api.onrender.com/rental_t_c/all")
-        response2=await client.get("https://fleetrez-api.onrender.com/inclusion/all")
+        response = await client.get("http://127.0.0.1:8000/rental_t_c/all")
+        response2=await client.get("http://127.0.0.1:8000/inclusion/all")
         response4=await client.get(driverurl)
         t_cdata = response.json()
         inclusion_data=response2.json()
-        location1_data=response1.json()
-        location2_data=locationss.json()
         driver_data=response4.json()
         bookingVehicledata.dueCheck_out=bookingVehicledata.excess_amount
         total_data = (
@@ -617,7 +615,6 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
         int(bookingVehicledata.tax)+
         int(bookingVehicledata.paid)+
         int(bookingVehicledata.dueCheck_out))
-        
         vehicledataList.append({
             "id":bookingVehicledata.id,
             "name":bookingVehicledata.name,
