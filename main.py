@@ -602,8 +602,6 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     print("id",driverurl)
     async with httpx.AsyncClient() as client:
         response = await client.get("https://fleetrez-api.onrender.com/rental_t_c/all")
-        response1=await client.get("https://fleetrez-api.onrender.com/locationById/9c08533a-71e5-40a4-b7c0-b02504b99f00")
-        locationss=await client.get("https://fleetrez-api.onrender.com/locationById/61d17365-12a0-4e4a-8c93-d567e42f00ab")
         response2=await client.get("https://fleetrez-api.onrender.com/inclusion/all")
         response4=await client.get(driverurl)
         t_cdata = response.json()
@@ -611,10 +609,7 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
         location1_data=response1.json()
         location2_data=locationss.json()
         driver_data=response4.json()
-        locations.append({
-                "location1":location1_data,
-                "location2":location2_data
-            })
+        bookingVehicledata.dueCheck_out=bookingVehicledata.excess_amount
         total_data = (
         int(bookingVehicledata.car_rental) +
         int(bookingVehicledata.excess_amount) +
