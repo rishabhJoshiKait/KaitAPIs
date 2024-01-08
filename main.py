@@ -581,7 +581,7 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
     if bookingVehicledata is  None:
         raise HTTPException(status_code=404, detail="Booking not found")
     driverid=bookingVehicledata.driver_detail_id
-    drurl="http://127.0.0.1:8000/driver_detailId/"
+    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
     async with httpx.AsyncClient() as client:
@@ -597,12 +597,12 @@ async def managebooking(managebooking:ManagebookingBase,db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Booking not found")
     
     print("id",driverurl)
-    drurl="http://127.0.0.1:8000/driver_detailId/"
+    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
     async with httpx.AsyncClient() as client:
-        response = await client.get("http://127.0.0.1:8000/rental_t_c/all")
-        response2=await client.get("http://127.0.0.1:8000/inclusion/all")
+        response = await client.get("https://fleetrez-api.onrender.com/rental_t_c/all")
+        response2=await client.get("https://fleetrez-api.onrender.com/inclusion/all")
         response4=await client.get(driverurl)
         t_cdata = response.json()
         inclusion_data=response2.json()
@@ -1344,7 +1344,7 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
 async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     booking_vehicle_data=db.query(models.booking_vehicleClass).filter(models.booking_vehicleClass.id==booking_vehicle_id).first()   
     driverid=booking_vehicle_data.driver_detail_id
-    drurl="http://127.0.0.1:8000/driver_detailId/"
+    drurl="https://fleetrez-api.onrender.com/driver_detailId/"
     driverurl=urljoin(drurl,str(driverid))
     print("id",driverurl)
     vehicledataList = []
