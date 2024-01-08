@@ -1350,9 +1350,9 @@ async def readbooking_vehicle(booking_vehicle_id:UUID, db:db_dependency):
     vehicledataList = []
     locations=[]
     async with httpx.AsyncClient() as client:
-            response1= await client.get("http://127.0.0.1:8000/inclusion/all")
+            response1= await client.get("https://fleetrez-api.onrender.com/inclusion/all")
             response3=await client.get(driverurl)
-            response4=await client.get("http://127.0.0.1:8000/rental_t_c/all")
+            response4=await client.get("https://fleetrez-api.onrender.com/rental_t_c/all")
             inclusion_data= response1.json()
             driver_detail_data=response3.json()
             t_c_data=response4.json()
